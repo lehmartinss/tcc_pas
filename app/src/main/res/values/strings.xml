@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">PAS</string>
+    <string name= "logo_description">Logo description</string>
+    <string name= "login">Login</string>
+    <string name= "login_gov">com a conta GOV</string>
+    <string name= "digite_cpf">CPF</string>
+    <string name= "senha">Senha</string>
+    <string name= "entrar">Entrar</string>
+    <string name= "nao_tem_conta">Não tem conta GOV?</string>
+    <string name= "criar_conta">Criar conta GOV</string>
+
+</resources>
