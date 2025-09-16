@@ -4,13 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import br.senai.sp.jandira.tcc_pas.screens.TelaHome
 import br.senai.sp.jandira.tcc_pas.screens.TelaLogin
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 
@@ -20,8 +17,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Tcc_PasTheme {
-                TelaLogin()
+                var navController = rememberNavController()
+                NavHost(
+                    navController = navController,
+                    startDestination = "login"
+                ) {
+                    composable("login") {
+                        TelaLogin(navController)
+                    }
+                    composable("home") {
+                        TelaHome(navController)
+                    }
+                }
+
             }
+
+
         }
     }
 }

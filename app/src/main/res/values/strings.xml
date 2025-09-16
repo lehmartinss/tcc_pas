@@ -8,5 +8,9 @@
     <string name= "entrar">Entrar</string>
     <string name= "nao_tem_conta">Não tem conta GOV?</string>
     <string name= "criar_conta">Criar conta GOV</string>
+    <string name= "continuar_sem_login">Continuar sem login</string>
+    <string name= "li_aceito">Li e Aceito com os</string>
+    <string name= "termos_uso">Termos de Uso e Responsabilidade</string>
+
 
 </resources>

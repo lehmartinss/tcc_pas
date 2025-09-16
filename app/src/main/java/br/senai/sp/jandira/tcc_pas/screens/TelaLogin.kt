@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -26,9 +27,13 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -44,6 +49,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -62,65 +68,80 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.Login
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.await
 
-
-// ESSAS TRATATIZA DE QUANTIDADE VAI SAIR, POIS NO BACK JA VAI TER,
-// ENTAO NO MOBILE VAI FICAR APENAS A AUTOMACAO DE COLOCAR . E - SEM O USUARIO PRECISAR COLOCAR
-
-
-class CpfVisualTransformation : VisualTransformation {
-    override fun filter(texto: AnnotatedString): TransformedText {
-        val numeros = texto.text.filter { it.isDigit() }.take(11)
-        val formatado = buildString {
-            numeros.forEachIndexed { indice, char ->
-                when (indice) {
-                    3, 6 -> append('.')
-                    9 -> append('-')
-                }
-                append(char)
-            }
-        }
-
-        val mapeamentoOffset = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                var novoOffset = offset
-                if (offset > 2) novoOffset += 1
-                if (offset > 5) novoOffset += 1
-                if (offset > 8) novoOffset += 1
-                return novoOffset.coerceAtMost(formatado.length)
-            }
-
-            override fun transformedToOriginal(offset: Int): Int {
-                var novoOffset = offset
-                if (offset > 3) novoOffset -= 1
-                if (offset > 7) novoOffset -= 1
-                if (offset > 11) novoOffset -= 1
-                return novoOffset.coerceAtMost(numeros.length)
-            }
-        }
-
-        return TransformedText(AnnotatedString(formatado), mapeamentoOffset)
-    }
-}
+//
+//// FAZ A FORMATACAO DOS NUMEROS DIGITADO PELO USUARIO SER UM CPF
+//class CpfVisualTransformation : VisualTransformation {
+//    override fun filter(texto: AnnotatedString): TransformedText {
+//        val numeros = texto.text.filter { it.isDigit() }.take(11)
+//        val formatado = buildString {
+//            numeros.forEachIndexed { indice, char ->
+//                when (indice) {
+//                    3, 6 -> append('.')
+//                    9 -> append('-')
+//                }
+//                append(char)
+//            }
+//        }
+//
+//        val mapeamentoOffset = object : OffsetMapping {
+//            override fun originalToTransformed(offset: Int): Int {
+//                var novoOffset = offset
+//                if (offset > 2) novoOffset += 1
+//                if (offset > 5) novoOffset += 1
+//                if (offset > 8) novoOffset += 1
+//                return novoOffset.coerceAtMost(formatado.length)
+//            }
+//
+//            override fun transformedToOriginal(offset: Int): Int {
+//                var novoOffset = offset
+//                if (offset > 3) novoOffset -= 1
+//                if (offset > 7) novoOffset -= 1
+//                if (offset > 11) novoOffset -= 1
+//                return novoOffset.coerceAtMost(numeros.length)
+//            }
+//        }
+//
+//        return TransformedText(AnnotatedString(formatado), mapeamentoOffset)
+//    }
+//}
 
 @Composable
-fun TelaLogin() {
-    val cpf = remember { mutableStateOf("") }
-    val senha = remember { mutableStateOf("") }
+fun TelaLogin(navController: NavHostController?) {
+    var cpf = remember { mutableStateOf("") }
+    var senha = remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    // Estado para AlertDialogs
+    // Estado para AlertDialogs e Aceitou os Termos
     var mostrarTelaSucesso by remember { mutableStateOf(false) }
     var mostrarTelaErro by remember { mutableStateOf(false) }
+    var aceitouTermos by remember { mutableStateOf(false) }
 
-    // VAI SAIR ESSE DADOS FAKES E ENTRAR A API DO GOV
-    // Função fake de validação
-    fun validarLoginFake(cpf: String, senha: String): Boolean {
-        return cpf == "12345678901" && senha == "123456" // exemplo fixo
+    fun validarLogin(cpf: String, senha: String): Boolean {
+        val cpfValido = cpf.length == 11 // apenas números
+        val senhaValida = senha.isNotEmpty()
+
+        var status = false
+        if(cpfValido == true && senhaValida == true){
+            status = true
+        }
+
+        return status
     }
+
+
+    // CRIAR UMA INSTANCIA DO RETROFITFACTORY
+    val apiGov = RetrofitFactory().getPasService()
+
 
     Scaffold { innerPadding ->
         Box(
@@ -183,7 +204,7 @@ fun TelaLogin() {
                             tint = MaterialTheme.colorScheme.tertiaryContainer
                         )
                     },
-                    visualTransformation = CpfVisualTransformation(),
+//                    visualTransformation = CpfVisualTransformation(),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.background,
                         unfocusedContainerColor = MaterialTheme.colorScheme.background,
@@ -197,7 +218,6 @@ fun TelaLogin() {
                     ),
                     singleLine = true
                 )
-
 
                 OutlinedTextField(
                     value = senha.value,
@@ -238,23 +258,125 @@ fun TelaLogin() {
                     )
                 )
 
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    RadioButton(
+                        selected = aceitouTermos,
+                        onClick = { aceitouTermos = !aceitouTermos },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = MaterialTheme.colorScheme.tertiary
+                        )
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.li_aceito),
+                            fontSize = 10.sp,
+
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+
+                        TextButton(
+                            onClick = {
+                                // aqui você coloca a navegação, exemplo:
+                                // navController.navigate("tela_termos")
+                            },
+                            contentPadding = PaddingValues(0.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.termos_uso),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.tertiary
+
+                            )
+                        }
+                    }
+                }
+
                 Button(
                     onClick = {
-                        if (validarLoginFake(cpf.value, senha.value)) {
-                            mostrarTelaSucesso = true
-                        } else {
-                            mostrarTelaErro = true
+                        if (validarLogin(cpf.value, senha.value)) {
+
+
+                            println("entrei")
+                            val login = Login(
+                                cpf = cpf.value,
+                                senha = senha.value
+                            )
+
+                            println(cpf.value)
+                            println(senha.value)
+                            //REQUESICAO DA API
+                            GlobalScope.launch(Dispatchers.IO) {
+                                val response = apiGov.inserir(login).await()
+
+                                mostrarTelaSucesso = true
+
+                            }
+                        }else{
+                          mostrarTelaErro = true
                         }
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(0.4f)
                         .padding(top = 32.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,   // fundo
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer     // texto
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 ) {
-                    Text(text = "Entrar")
+                    Text(text = stringResource(R.string.entrar))
+                }
+                // AlertDialogs
+                if (mostrarTelaSucesso) {
+                    println("entrei")
+                    AlertDialog(
+                        onDismissRequest = {},
+                        title = { Text(text = "Sucesso") },
+                        text = { Text(text = "Login efetuado com sucesso!") },
+                        confirmButton = {
+                            Button(onClick = { mostrarTelaSucesso = false }) {
+                                Text(text = "Ok")
+                            }
+
+                        }
+                    )
+                }
+
+                if (mostrarTelaErro) {
+                    AlertDialog(
+                        onDismissRequest = {},
+                        title = { Text(text = "Erro") },
+                        text = { Text(text = "CPF ou senha inválidos!") },
+                        confirmButton = {
+                            Button(onClick = { mostrarTelaErro = false }) {
+                                Text(text = "Ok")
+                            }
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                TextButton(
+                    onClick = {
+//                        {navController?.navigate(route = "Home")}
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.continuar_sem_login)
+                    )
                 }
 
 
@@ -295,32 +417,7 @@ fun TelaLogin() {
                     }
                 }
 
-                // AlertDialogs
-                if (mostrarTelaSucesso) {
-                    AlertDialog(
-                        onDismissRequest = {},
-                        title = { Text(text = "Sucesso") },
-                        text = { Text(text = "Login efetuado com sucesso!") },
-                        confirmButton = {
-                            Button(onClick = { mostrarTelaSucesso = false }) {
-                                Text(text = "Ok")
-                            }
-                        }
-                    )
-                }
 
-                if (mostrarTelaErro) {
-                    AlertDialog(
-                        onDismissRequest = {},
-                        title = { Text(text = "Erro") },
-                        text = { Text(text = "CPF ou senha inválidos!") },
-                        confirmButton = {
-                            Button(onClick = { mostrarTelaErro = false }) {
-                                Text(text = "Ok")
-                            }
-                        }
-                    )
-                }
             }
         }
     }
@@ -329,7 +426,7 @@ fun TelaLogin() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun TelaLoginPreview() {
-    TelaLogin()
+    TelaLogin(null)
 }
 
 
