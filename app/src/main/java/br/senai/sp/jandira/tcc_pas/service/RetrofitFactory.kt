@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitFactory {
 
-    private val BASE_URL = "http://10.107.144.24:4000/"
+    private val BASE_URL = "http://10.107.140.25:4000/"
 
     private  val retrofitFactory =
         Retrofit

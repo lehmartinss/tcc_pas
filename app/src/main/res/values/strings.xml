@@ -2,7 +2,7 @@
     <string name="app_name">PAS</string>
     <string name= "logo_description">Logo description</string>
     <string name= "login">Login</string>
-    <string name= "login_gov">com a conta GOV</string>
+    <string name= "login_gov">com a conta </string>
     <string name= "digite_cpf">CPF</string>
     <string name= "senha">Senha</string>
     <string name= "entrar">Entrar</string>
