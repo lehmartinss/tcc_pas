@@ -3,9 +3,9 @@ package br.senai.sp.jandira.tcc_pas.service
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class RetrofitFactory {
+class RetrofitFactoryCampanha {
 
-    private val BASE_URL = "https://api-fake-de-usuarios-com-json-server-3.onrender.com/"
+    private val BASE_URL = "https://api-fake-de-campanhas-com-json-server-1.onrender.com/"
 
     private  val retrofitFactory =
         Retrofit
@@ -15,7 +15,7 @@ class RetrofitFactory {
             .build()
 
 
-    fun getPasService(): PasService{
+    fun getCampanhaService(): PasService {
         return retrofitFactory.create(PasService::class.java)
     }
 }

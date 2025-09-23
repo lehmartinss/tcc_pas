@@ -11,6 +11,10 @@
     <string name= "continuar_sem_login">Continuar sem login</string>
     <string name= "li_aceito">Li e Aceito com os</string>
     <string name= "termos_uso">Termos de Uso e Responsabilidade</string>
+    <string name= "pesquisa">Procure por uma unidade</string>
+    <string name= "cardInfo">Encontre a unidade de saúde mais próxima:</string>
+    <string name= "cardInfo2">clique no mapa para mais informações</string>
+    <string name= "informacaoHome">Informações</string>
 
 
 </resources>

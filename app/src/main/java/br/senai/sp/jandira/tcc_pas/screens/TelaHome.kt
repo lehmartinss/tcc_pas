@@ -1,8 +1,10 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -16,10 +18,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -50,8 +57,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,25 +79,23 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
+import br.senai.sp.jandira.tcc_pas.model.CampanhaResponse
+import br.senai.sp.jandira.tcc_pas.service.PasService
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier){
+fun HomeScreen(navController: NavHostController?){
 
     var navController = rememberNavController()
 
     Scaffold(
-//        topBar = {
-//            BarraDeTitulo()
-//        },
         bottomBar = {
             BarraDeNavegacao(navController)
         },
-//        floatingActionButton = {
-//            BotaoFlutuante(navController)
-//        },
         content = { paddingValues ->
             Column (
                 modifier = Modifier
@@ -112,7 +119,6 @@ fun HomeScreen(modifier: Modifier = Modifier){
 fun BarraDeNavegacao(navController: NavHostController?) {
     NavigationBar(
         containerColor = Color(0xFF298BE6)
-//        contentColor = MaterialTheme.colorScheme.onPrimary
     ) {
         NavigationBarItem(
             selected = false,
@@ -125,13 +131,13 @@ fun BarraDeNavegacao(navController: NavHostController?) {
                 )
             },
             label = {
-                Text(text = "Home",
+                Text(text = "Início",
                     color = MaterialTheme.colorScheme.onPrimary)
             }
         )
         NavigationBarItem(
             selected = false,
-            onClick = {},
+            onClick = {navController!!.navigate(route = "mapa")},
             icon = {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
@@ -147,7 +153,7 @@ fun BarraDeNavegacao(navController: NavHostController?) {
         )
         NavigationBarItem(
             selected = false,
-            onClick = {},
+            onClick = {navController!!.navigate(route = "perfil")},
             icon = {
                 Icon(
                     imageVector = Icons.Default.Person,
@@ -176,142 +182,27 @@ private fun BarraDeNavegacaoPreview(){
 @Composable
 fun TelaHome(paddingValues: PaddingValues) {
 
-//    //CRIAR UMA INSTANCIA DO RETROFITFACTORY
-//    val clienteApi = RetrofitFactory().getClienteService()
-//
-//    // CRIAR UMA VARIAVEL DE ESTADO PARA ARMAZENAR A LISTA DE CLIENTES DA API
-//    var clientes by  remember {
-//        mutableStateOf(listOf<Cliente>())
-//    }
 
-//    LaunchedEffect(Dispatchers.IO) {
-//        clientes = clienteApi.exibirTodos().await()
-//    }
-//    Column (
-//        modifier = Modifier
-//            .fillMaxSize()
-//    ){
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(45.dp)
-//                .background(Color(color = 0xFFDE1313))
-//                .padding(horizontal = 12.dp),
-//            contentAlignment = Alignment.CenterStart
-//
-//        ){
-//            Row (verticalAlignment = Alignment.CenterVertically){
-//                Icon(
-//                    imageVector = Icons.Default.Search,
-//                    contentDescription = "Pesquisar",
-//                    tint = Color.Black
-//                )
-//                Spacer(modifier = Modifier.width(width = 8.dp))
-//                Text(text = "pesquisar", color = Color.Black)
-//            }
-//        }
-//
-//        Spacer(modifier = Modifier.height(height = 16.dp))
-//
-//        Card(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(70.dp),
-//            shape = RoundedCornerShape(12.dp),
-//            colors = CardDefaults.cardColors(contentColor = Color.Black)
-//
-//        ) {
-//            Box(contentAlignment = Alignment.CenterStart, modifier = Modifier.fillMaxSize()){
-//                Text(
-//                    text = "Mapa",
-//                    color = Color.Red,
-//                    fontWeight = FontWeight.Bold,
-//                    fontSize = 16.sp,
-//                    modifier = Modifier
-//                        .padding(start = 16.dp)
-//                )
-//            }
-//
-//        }
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(Color.White) // só pra destacar melhor
-//    ) {
-//        Spacer(modifier = Modifier.height(20.dp)) // deixa a barra mais pra baixo
-//
-//        // Barra de pesquisa arredondada
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(40.dp)
-//                .padding(horizontal = 10.dp)
-//                .background(Color(0xFF298BE6), RoundedCornerShape(40)), // arredondada
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Default.KeyboardArrowDown, // seta para baixo
-//                    contentDescription = "Seta",
-//                    tint = Color.White,
-//                    modifier = Modifier.padding(start = 12.dp)
-//                )
-//
-//                Text(
-//                    text = "Procure por uma unidade",
-//                    color = Color.White,
-//                    modifier = Modifier.weight(1f),
-//                    textAlign = TextAlign.Center
-//                )
-//
-//                Icon(
-//                    imageVector = Icons.Default.Search, // ícone de pesquisa
-//                    contentDescription = "Pesquisar",
-//                    tint = Color.White,
-//                    modifier = Modifier.padding(end = 12.dp)
-//                )
-//            }
-//        }
-//
-//        Spacer(modifier = Modifier.height(24.dp))
-//
-//        // Card maior com "Mapa" centralizado
-//        Card(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(120.dp), // maior
-//            shape = RoundedCornerShape(16.dp),
-//        ) {
-//            Box(
-//                modifier = Modifier.fillMaxSize()
-//                    .background(Color(0xFFD7B4B4)),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Text(
-//                    text = "Mapa",
-//                    color = Color.Red,
-//                    fontWeight = FontWeight.Bold,
-//                    fontSize = 20.sp
-//                )
-//            }
-//        }
-//
-//
-//    }
+    // Retrofit da API de campanhas
+    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
+    var campanhas by remember { mutableStateOf<List<CampanhaResponse>>(emptyList()) }
+    var carregando by remember { mutableStateOf(true) }
 
+    LaunchedEffect(Unit) {
+        try {
+            val response = withContext(Dispatchers.IO) { apiCampanha.listarCampanhas() }
+                print(response)
+            if (response.isSuccessful) {
+                print("ta indo")
+                response.body()?.let { campanhas = it }
 
-//    LazyColumn (
-//            contentPadding = PaddingValues(bottom = 70 .dp)
-//        ){
-////            items(clientes){cliente ->
-////                ClienteCard(cliente, clienteApi)
-////            }
-//        }
-//    }
+            }
+        } catch (e: Exception) {
+            Log.e("TelaHome", "Erro ao buscar campanhas: ${e.message}")
+        } finally {
+            carregando = false
+        }
+    }
 
 
     Box(
@@ -319,22 +210,22 @@ fun TelaHome(paddingValues: PaddingValues) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Fundo (mapa simulado em rosa claro)
+       // O FUNDO ROSA VAI SAIR E VAI TER O MAPA
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(326.dp) // altura do "mapa"
-                .background(Color(0xFFFFC0CB)) // rosa claro
+                .background(Color(0xFF93979F)) // rosa claro
         )
 
-        // Barra de pesquisa arredondada (sobre o mapa)
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
                 .padding(horizontal = 10.dp, vertical = 12.dp)
                 .align(Alignment.TopCenter)
-                .zIndex(2f) // garante que fica acima de tudo
+                .zIndex(2f)
                 .background(Color(0xFF298BE6), RoundedCornerShape(40)),
             contentAlignment = Alignment.Center
         ) {
@@ -350,7 +241,7 @@ fun TelaHome(paddingValues: PaddingValues) {
                     modifier = Modifier.padding(start = 12.dp)
                 )
                 Text(
-                    text = "Procure por uma unidade",
+                    text = stringResource(R.string.pesquisa),
                     color = Color.White,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
@@ -364,23 +255,23 @@ fun TelaHome(paddingValues: PaddingValues) {
             }
         }
 
-        // Card vermelho principal que sobrepõe o mapa
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.6f) // ocupa metade da tela
+                .fillMaxHeight(0.6f)
                 .align(Alignment.BottomCenter)
                 .zIndex(1f),
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF))
         ) {
+
+            Spacer(modifier = Modifier.height(35.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Primeiro card de informação
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -390,52 +281,117 @@ fun TelaHome(paddingValues: PaddingValues) {
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        Text(
-                            text = "Encontre a unidade de saúde mais próxima:\nclique no mapa para mais informações",
-                            textAlign = TextAlign.Center,
-                            color = Color.Black,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.cardInfo),
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.height(1.dp))
+                            Text(
+                                text = stringResource(R.string.cardInfo2),
+                                textAlign = TextAlign.Center,
+                                color = Color(0xFF1E5FA3),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
+
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
                 Text(
-                    text = "Informações",
+                    text = stringResource(R.string.informacaoHome),
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    color = Color.White, // contraste com fundo vermelho
+                    color = Color.Black,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
-                // Segundo card de conteúdo (exemplo de campanha)
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFFFFA726)),
-                        contentAlignment = Alignment.Center
+
+                if (carregando) {
+                    Text(
+                        "Carregando campanhas...",
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                } else {
+                    // FAZ O CARD APARECER COM A ROLAGEM HORIZONTAL
+                    val lazyListState = rememberLazyListState()
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        flingBehavior = rememberSnapFlingBehavior(lazyListState),
+                        state = lazyListState
                     ) {
-                        Text(
-                            text = "Campanha de Vacinação Contra a Influenza 2025",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(12.dp)
-                        )
+                        items(campanhas) { campanha ->
+                            Card(
+                                modifier = Modifier
+                                    .fillParentMaxWidth()
+                                    .height(180.dp)
+                                    .padding(horizontal = 16.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color(0xFFFFA726)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center,
+                                        modifier = Modifier.padding(12.dp)
+                                    ) {
+                                        Text(
+                                            text = campanha.nome ,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 16.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = campanha.descricao,
+                                            color = Color.White,
+                                            fontSize = 14.sp,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // INDICADOR DE BOLINHAS
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        campanhas.forEachIndexed { index, _ ->
+                            val isSelected = lazyListState.firstVisibleItemIndex == index
+                            Box(
+                                modifier = Modifier
+                                    .size(if (isSelected) 12.dp else 8.dp) // maior quando selecionada
+                                    .padding(2.dp)
+                                    .background(
+                                        if (isSelected) Color(0xFF298BE6) else Color.LightGray,
+                                        shape = CircleShape
+                                    )
+                            )
+                        }
                     }
                 }
             }
@@ -448,6 +404,6 @@ fun TelaHome(paddingValues: PaddingValues) {
 @Composable
 private fun HomeScreenPreview(){
     Tcc_PasTheme {
-        HomeScreen( )
+        HomeScreen( null)
     }
 }
