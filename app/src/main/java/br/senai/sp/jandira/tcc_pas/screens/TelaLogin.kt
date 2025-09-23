@@ -180,7 +180,7 @@ fun TelaLogin(navController: NavHostController?) {
 
 //                Text(
 //                    text = stringResource(R.string.login_gov),
-//                    fontSize = 15.sp,
+//                   fontSize = 15.sp,
 //                    fontWeight = FontWeight.SemiBold,
 //                    color = Color(0xFF1E5FA3)
 //                )

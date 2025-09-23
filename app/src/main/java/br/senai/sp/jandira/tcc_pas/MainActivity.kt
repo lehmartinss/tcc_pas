@@ -7,8 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import br.senai.sp.jandira.tcc_pas.screens.HomeScreen
-import br.senai.sp.jandira.tcc_pas.screens.TelaHome
+import br.senai.sp.jandira.tcc_pas.screens.Tela
 import br.senai.sp.jandira.tcc_pas.screens.TelaLogin
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 
@@ -27,7 +26,7 @@ class MainActivity : ComponentActivity() {
                         TelaLogin(navController)
                     }
                     composable("home") {
-                        HomeScreen()
+                        Tela()
                     }
                 }
 

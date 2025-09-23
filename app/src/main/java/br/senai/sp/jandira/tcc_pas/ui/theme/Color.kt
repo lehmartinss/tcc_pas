@@ -19,3 +19,5 @@ val tertiaryContainerLight = Color(0xFF1E5FA3)
 val onTertiaryContainerLight = Color(0xFFFFFFFF)
 val backgroundLight = Color(0xFFF9FAFB)
 val onBackgroundLight = Color(0xFF100707)
+
+
