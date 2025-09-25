@@ -6,5 +6,6 @@ data class CampanhaResponse(
     val nome: String  = "",
     val descricao: String  = "",
     val data_inicio: String  = "",
-    val data_fim: String  = ""
+    val data_fim: String  = "",
+    val foto:  String = ""
 )

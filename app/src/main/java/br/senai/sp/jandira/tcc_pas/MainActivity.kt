@@ -7,7 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import br.senai.sp.jandira.tcc_pas.screens.HomeCampanha
 import br.senai.sp.jandira.tcc_pas.screens.HomeScreen
+import br.senai.sp.jandira.tcc_pas.screens.TelaDescricacaoCampanhas
 import br.senai.sp.jandira.tcc_pas.screens.TelaLogin
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 
@@ -17,7 +19,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Tcc_PasTheme {
-                var navController = rememberNavController()
+                val navController = rememberNavController()
                 NavHost(
                     navController = navController,
                     startDestination = "login"
@@ -27,6 +29,9 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("home") {
                         HomeScreen(navController)
+                    }
+                    composable("campanha") {
+                        HomeCampanha(navController)
                     }
                     composable("mapa") {
 

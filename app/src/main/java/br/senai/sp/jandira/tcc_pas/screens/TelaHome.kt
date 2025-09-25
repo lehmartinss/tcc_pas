@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -85,34 +86,360 @@ import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import coil.compose.AsyncImage
+
+
+
+//
+//@Composable
+//fun HomeScreen(navController: NavHostController?){
+//
+//    var navController = rememberNavController()
+//
+//    Scaffold(
+//        bottomBar = {
+//            BarraDeNavegacao(navController)
+//        },
+//        content = { paddingValues ->
+//            Column (
+//                modifier = Modifier
+//                    .padding(paddingValues)
+//                    .fillMaxSize()
+//                    .background(color = MaterialTheme.colorScheme.background)
+//            ){
+//                NavHost(
+//                    navController = navController,
+//                    startDestination = "Home"
+//                ) {
+//                    composable(route = "Home"){ TelaHome(paddingValues) }
+//
+//                }
+//            }
+//        }
+//    )
+//}
+//
+//@Composable
+//fun BarraDeNavegacao(navController: NavHostController?) {
+//    NavigationBar(
+//        containerColor = Color(0xFF298BE6)
+//    ) {
+//        NavigationBarItem(
+//            selected = false,
+//            onClick = {navController!!.navigate(route = "Home")},
+//            icon = {
+//                Icon(
+//                    imageVector = Icons.Default.Home,
+//                    contentDescription = "Home",
+//                    tint = MaterialTheme.colorScheme.onPrimary
+//                )
+//            },
+//            label = {
+//                Text(text = "Início",
+//                    color = MaterialTheme.colorScheme.onPrimary)
+//            }
+//        )
+//        NavigationBarItem(
+//            selected = false,
+//            onClick = {navController!!.navigate(route = "mapa")},
+//            icon = {
+//                Icon(
+//                    imageVector = Icons.Default.LocationOn,
+//                    contentDescription = "Mapa",
+//                    tint = MaterialTheme.colorScheme.onPrimary
+//                )
+//            },
+//            label = {
+//                Text(text = "Mapa",
+//                    color = MaterialTheme.colorScheme.onPrimary
+//                )
+//            }
+//        )
+//        NavigationBarItem(
+//            selected = false,
+//            onClick = {navController!!.navigate(route = "perfil")},
+//            icon = {
+//                Icon(
+//                    imageVector = Icons.Default.Person,
+//                    contentDescription = "Perfil",
+//                    tint = MaterialTheme.colorScheme.onPrimary
+//                )
+//            },
+//            label = {
+//                Text(text = "Perfil",
+//                    color = MaterialTheme.colorScheme.onPrimary)
+//            }
+//        )
+//    }
+//
+//}
+//
+//@Preview
+//@Composable
+//private fun BarraDeNavegacaoPreview(){
+//    Tcc_PasTheme {
+//        BarraDeNavegacao(null)
+//    }
+//}
+//
+//
+//@Composable
+//fun TelaHome(paddingValues: PaddingValues) {
+//
+//
+//    // Retrofit da API de campanhas
+//    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
+//    var campanhas by remember { mutableStateOf<List<CampanhaResponse>>(emptyList()) }
+//    var carregando by remember { mutableStateOf(true) }
+//
+//    LaunchedEffect(Unit) {
+//        try {
+//            val response = withContext(Dispatchers.IO) { apiCampanha.listarCampanhas() }
+//                print(response)
+//            if (response.isSuccessful) {
+//                print("ta indo")
+//                response.body()?.let { campanhas = it }
+//
+//            }
+//        } catch (e: Exception) {
+//            Log.e("TelaHome", "Erro ao buscar campanhas: ${e.message}")
+//        } finally {
+//            carregando = false
+//        }
+//    }
+//
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(Color.White)
+//    ) {
+//       // O FUNDO ROSA VAI SAIR E VAI TER O MAPA
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(326.dp) // altura do "mapa"
+//                .background(Color(0xFF93979F)) // rosa claro
+//        )
+//
+//
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(60.dp)
+//                .padding(horizontal = 10.dp, vertical = 12.dp)
+//                .align(Alignment.TopCenter)
+//                .zIndex(2f)
+//                .background(Color(0xFF298BE6), RoundedCornerShape(40)),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.SpaceBetween
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Default.KeyboardArrowDown,
+//                    contentDescription = "Seta",
+//                    tint = Color.White,
+//                    modifier = Modifier.padding(start = 12.dp)
+//                )
+//                Text(
+//                    text = stringResource(R.string.pesquisa),
+//                    color = Color.White,
+//                    modifier = Modifier.weight(1f),
+//                    textAlign = TextAlign.Center
+//                )
+//                Icon(
+//                    imageVector = Icons.Default.Search,
+//                    contentDescription = "Pesquisar",
+//                    tint = Color.White,
+//                    modifier = Modifier.padding(end = 12.dp)
+//                )
+//            }
+//        }
+//
+//        Card(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .fillMaxHeight(0.6f)
+//                .align(Alignment.BottomCenter)
+//                .zIndex(1f),
+//            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+//            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF))
+//        ) {
+//
+//            Spacer(modifier = Modifier.height(35.dp))
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp)
+//                    .verticalScroll(rememberScrollState())
+//            ) {
+//                Card(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(80.dp),
+//                    shape = RoundedCornerShape(12.dp),
+//                    colors = CardDefaults.cardColors(containerColor = Color(0xFFB4D7F2))
+//                ) {
+//                    Box(
+//                        contentAlignment = Alignment.Center,
+//                        modifier = Modifier.fillMaxSize()
+//                    ) {
+//                        Column(
+//                            horizontalAlignment = Alignment.CenterHorizontally,
+//                            verticalArrangement = Arrangement.Center
+//                        ) {
+//                            Text(
+//                                text = stringResource(R.string.cardInfo),
+//                                textAlign = TextAlign.Center,
+//                                color = Color.Black,
+//                                fontSize = 14.sp,
+//                                fontWeight = FontWeight.SemiBold
+//                            )
+//                            Spacer(modifier = Modifier.height(1.dp))
+//                            Text(
+//                                text = stringResource(R.string.cardInfo2),
+//                                textAlign = TextAlign.Center,
+//                                color = Color(0xFF1E5FA3),
+//                                fontSize = 14.sp,
+//                                fontWeight = FontWeight.SemiBold
+//                            )
+//                        }
+//                    }
+//
+//                }
+//
+//                Spacer(modifier = Modifier.height(40.dp))
+//
+//                Text(
+//                    text = stringResource(R.string.informacaoHome),
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 20.sp,
+//                    color = Color.Black,
+//                    modifier = Modifier.align(Alignment.CenterHorizontally)
+//                )
+//
+//                Spacer(modifier = Modifier.height(40.dp))
+//
+//
+//                if (carregando) {
+//                    Text(
+//                        "Carregando campanhas...",
+//                        modifier = Modifier.align(Alignment.CenterHorizontally)
+//                    )
+//                } else {
+//                    // FAZ O CARD APARECER COM A ROLAGEM HORIZONTAL
+//                    val lazyListState = rememberLazyListState()
+//                    LazyRow(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        flingBehavior = rememberSnapFlingBehavior(lazyListState),
+//                        state = lazyListState
+//                    ) {
+//                        items(campanhas) { campanha ->
+//                            Card(
+//                                modifier = Modifier
+//                                    .fillParentMaxWidth()
+//                                    .height(180.dp)
+//                                    .padding(horizontal = 16.dp),
+//                                shape = RoundedCornerShape(12.dp)
+//                            ) {
+//                                Box(
+//                                    modifier = Modifier
+//                                        .fillMaxSize()
+//                                        .background(Color(0xFFFFA726)),
+//                                    contentAlignment = Alignment.Center
+//                                ) {
+//                                    Column(
+//                                        horizontalAlignment = Alignment.CenterHorizontally,
+//                                        verticalArrangement = Arrangement.Center,
+//                                        modifier = Modifier.padding(12.dp)
+//                                    ) {
+//                                        Text(
+//                                            text = campanha.nome ,
+//                                            color = Color.White,
+//                                            fontWeight = FontWeight.Bold,
+//                                            textAlign = TextAlign.Center,
+//                                            fontSize = 16.sp
+//                                        )
+//                                        Spacer(modifier = Modifier.height(4.dp))
+//                                        Text(
+//                                            text = campanha.descricao,
+//                                            color = Color.White,
+//                                            fontSize = 14.sp,
+//                                            textAlign = TextAlign.Center
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    Spacer(modifier = Modifier.height(12.dp))
+//
+//                    // INDICADOR DE BOLINHAS
+//                    Row(
+//                        horizontalArrangement = Arrangement.Center,
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier.fillMaxWidth()
+//                    ) {
+//                        campanhas.forEachIndexed { index, _ ->
+//                            val isSelected = lazyListState.firstVisibleItemIndex == index
+//                            Box(
+//                                modifier = Modifier
+//                                    .size(if (isSelected) 12.dp else 8.dp) // maior quando selecionada
+//                                    .padding(2.dp)
+//                                    .background(
+//                                        if (isSelected) Color(0xFF298BE6) else Color.LightGray,
+//                                        shape = CircleShape
+//                                    )
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+//@Composable
+//private fun HomeScreenPreview(){
+//    Tcc_PasTheme {
+//        HomeScreen( null)
+//    }
+//}
 
 
 @Composable
-fun HomeScreen(navController: NavHostController?){
-
-    var navController = rememberNavController()
+fun HomeScreen(navController: NavHostController?) {
+    val navControllerState = navController ?: rememberNavController()
 
     Scaffold(
         bottomBar = {
-            BarraDeNavegacao(navController)
-        },
-        content = { paddingValues ->
-            Column (
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .background(color = MaterialTheme.colorScheme.background)
-            ){
-                NavHost(
-                    navController = navController,
-                    startDestination = "Home"
-                ) {
-                    composable(route = "Home"){ TelaHome(paddingValues) }
-
+            BarraDeNavegacao(navControllerState)
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .background(color = MaterialTheme.colorScheme.background)
+        ) {
+            NavHost(
+                navController = navControllerState,
+                startDestination = "Home"
+            ) {
+                composable("Home") { TelaHome(paddingValues, navControllerState) }
+                composable("campanha/{id}") { backStackEntry ->
+                    val id = backStackEntry.arguments?.getString("id")
+                    TelaDescricacaoCampanhas(id)
                 }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -122,68 +449,33 @@ fun BarraDeNavegacao(navController: NavHostController?) {
     ) {
         NavigationBarItem(
             selected = false,
-            onClick = {navController!!.navigate(route = "Home")},
+            onClick = { navController?.navigate("Home") },
             icon = {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Home",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+                Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
             },
-            label = {
-                Text(text = "Início",
-                    color = MaterialTheme.colorScheme.onPrimary)
-            }
+            label = { Text("Início", color = Color.White) }
         )
         NavigationBarItem(
             selected = false,
-            onClick = {navController!!.navigate(route = "mapa")},
+            onClick = { navController?.navigate("mapa") },
             icon = {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Mapa",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+                Icon(Icons.Default.LocationOn, contentDescription = "Mapa", tint = Color.White)
             },
-            label = {
-                Text(text = "Mapa",
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
+            label = { Text("Mapa", color = Color.White) }
         )
         NavigationBarItem(
             selected = false,
-            onClick = {navController!!.navigate(route = "perfil")},
+            onClick = { navController?.navigate("perfil") },
             icon = {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Perfil",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+                Icon(Icons.Default.Person, contentDescription = "Perfil", tint = Color.White)
             },
-            label = {
-                Text(text = "Perfil",
-                    color = MaterialTheme.colorScheme.onPrimary)
-            }
+            label = { Text("Perfil", color = Color.White) }
         )
     }
-
 }
 
-@Preview
 @Composable
-private fun BarraDeNavegacaoPreview(){
-    Tcc_PasTheme {
-        BarraDeNavegacao(null)
-    }
-}
-
-
-@Composable
-fun TelaHome(paddingValues: PaddingValues) {
-
-
-    // Retrofit da API de campanhas
+fun TelaHome(paddingValues: PaddingValues, navController: NavHostController) {
     val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
     var campanhas by remember { mutableStateOf<List<CampanhaResponse>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
@@ -191,11 +483,8 @@ fun TelaHome(paddingValues: PaddingValues) {
     LaunchedEffect(Unit) {
         try {
             val response = withContext(Dispatchers.IO) { apiCampanha.listarCampanhas() }
-                print(response)
             if (response.isSuccessful) {
-                print("ta indo")
                 response.body()?.let { campanhas = it }
-
             }
         } catch (e: Exception) {
             Log.e("TelaHome", "Erro ao buscar campanhas: ${e.message}")
@@ -204,21 +493,20 @@ fun TelaHome(paddingValues: PaddingValues) {
         }
     }
 
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-       // O FUNDO ROSA VAI SAIR E VAI TER O MAPA
+        // Fundo do mapa
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(326.dp) // altura do "mapa"
-                .background(Color(0xFF93979F)) // rosa claro
+                .height(326.dp)
+                .background(Color(0xFF93979F))
         )
 
-
+        // Barra superior azul
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -234,27 +522,18 @@ fun TelaHome(paddingValues: PaddingValues) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Seta",
-                    tint = Color.White,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Seta", tint = Color.White)
                 Text(
                     text = stringResource(R.string.pesquisa),
                     color = Color.White,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Pesquisar",
-                    tint = Color.White,
-                    modifier = Modifier.padding(end = 12.dp)
-                )
+                Icon(Icons.Default.Search, contentDescription = "Pesquisar", tint = Color.White)
             }
         }
 
+        // Card branco inferior
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -262,53 +541,15 @@ fun TelaHome(paddingValues: PaddingValues) {
                 .align(Alignment.BottomCenter)
                 .zIndex(1f),
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF))
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-
-            Spacer(modifier = Modifier.height(35.dp))
+            Spacer(Modifier.height(35.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFB4D7F2))
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cardInfo),
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.height(1.dp))
-                            Text(
-                                text = stringResource(R.string.cardInfo2),
-                                textAlign = TextAlign.Center,
-                                color = Color(0xFF1E5FA3),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-
-                }
-
-                Spacer(modifier = Modifier.height(40.dp))
-
                 Text(
                     text = stringResource(R.string.informacaoHome),
                     fontWeight = FontWeight.Bold,
@@ -317,16 +558,11 @@ fun TelaHome(paddingValues: PaddingValues) {
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
 
-                Spacer(modifier = Modifier.height(40.dp))
-
+                Spacer(Modifier.height(40.dp))
 
                 if (carregando) {
-                    Text(
-                        "Carregando campanhas...",
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    Text("Carregando campanhas...", modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
-                    // FAZ O CARD APARECER COM A ROLAGEM HORIZONTAL
                     val lazyListState = rememberLazyListState()
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),
@@ -338,43 +574,25 @@ fun TelaHome(paddingValues: PaddingValues) {
                                 modifier = Modifier
                                     .fillParentMaxWidth()
                                     .height(180.dp)
-                                    .padding(horizontal = 16.dp),
+                                    .padding(horizontal = 16.dp)
+                                    .clickable {
+                                        navController.navigate("campanha/${campanha.id}")
+                                    },
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color(0xFFFFA726)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center,
-                                        modifier = Modifier.padding(12.dp)
-                                    ) {
-                                        Text(
-                                            text = campanha.nome ,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold,
-                                            textAlign = TextAlign.Center,
-                                            fontSize = 16.sp
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = campanha.descricao,
-                                            color = Color.White,
-                                            fontSize = 14.sp,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
-                                }
+                                AsyncImage(
+                                    model = campanha.foto,
+                                    contentDescription = "Imagem da campanha",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(Modifier.height(12.dp))
 
-                    // INDICADOR DE BOLINHAS
+                    // Indicador de bolinhas
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
@@ -384,7 +602,7 @@ fun TelaHome(paddingValues: PaddingValues) {
                             val isSelected = lazyListState.firstVisibleItemIndex == index
                             Box(
                                 modifier = Modifier
-                                    .size(if (isSelected) 12.dp else 8.dp) // maior quando selecionada
+                                    .size(if (isSelected) 12.dp else 8.dp)
                                     .padding(2.dp)
                                     .background(
                                         if (isSelected) Color(0xFF298BE6) else Color.LightGray,
@@ -399,11 +617,16 @@ fun TelaHome(paddingValues: PaddingValues) {
     }
 }
 
+@Composable
+fun TelaDescricacaoCampanhas(id: String?) {
+    // Aqui você busca os detalhes da campanha pelo id (nova chamada na API se precisar)
+    Text("Tela de detalhes da campanha ID = $id", modifier = Modifier.fillMaxSize())
+}
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
-private fun HomeScreenPreview(){
+private fun HomeScreenPreview() {
     Tcc_PasTheme {
-        HomeScreen( null)
+        HomeScreen(null)
     }
 }
