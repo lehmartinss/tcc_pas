@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -53,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.AppNavigation
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.CampanhaResponse
@@ -70,6 +72,8 @@ fun HomeScreen(navController: NavHostController) {
     val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
     var campanhas by remember { mutableStateOf<List<CampanhaResponse>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
+
+    //  CARREGA E LISTA AS CAMPANHAS
 
     LaunchedEffect(Unit) {
         try {
@@ -134,7 +138,6 @@ fun HomeScreen(navController: NavHostController) {
             }
         }
 
-        // Card com as campanhas
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -257,46 +260,79 @@ fun HomeScreen(navController: NavHostController) {
     }
 }
 
-@Composable
-fun TelaDescricacaoCampanhas(id: Int) {
-    // Aqui você pode buscar os detalhes da campanha pelo id
-    Text(
-        "Tela de detalhes da campanha ID = $id",
-        modifier = Modifier.fillMaxSize()
-    )
-}
+
 
 
 @Composable
-fun BarraDeNavegacao(navController: NavHostController) {
-    NavigationBar(containerColor = Color(0xFF298BE6)) {
+fun BarraDeNavegacao(navController: NavHostController?) {
+    NavigationBar(
+        containerColor = Color(0xFF298BE6)
+    ) {
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate("home") },
-            icon = { Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White) },
-            label = { Text("Início", color = Color.White) }
+            onClick = {navController!!.navigate(route = "Home")},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            label = {
+                Text(text = "Início",
+                    color = MaterialTheme.colorScheme.onPrimary)
+            }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate("mapa") },
-            icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa", tint = Color.White) },
-            label = { Text("Mapa", color = Color.White) }
+            onClick = {navController!!.navigate(route = "mapa")},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Mapa",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            label = {
+                Text(text = "Mapa",
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate("perfil") },
-            icon = { Icon(Icons.Default.Person, contentDescription = "Perfil", tint = Color.White) },
-            label = { Text("Perfil", color = Color.White) }
+            onClick = {navController!!.navigate(route = "perfil")},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Perfil",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            label = {
+                Text(text = "Perfil",
+                    color = MaterialTheme.colorScheme.onPrimary)
+            }
         )
     }
+
 }
+
+@Preview
+@Composable
+private fun BarraDeNavegacaoPreview(){
+    Tcc_PasTheme {
+        BarraDeNavegacao(null)
+    }
+}
+
+
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 fun HomeScreenPreview() {
     Tcc_PasTheme {
-        AppNavigation()
-    }
+        HomeScreen(navController = rememberNavController())    }
 }
 
 

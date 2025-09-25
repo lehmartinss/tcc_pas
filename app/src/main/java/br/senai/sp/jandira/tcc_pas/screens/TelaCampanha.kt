@@ -63,295 +63,13 @@ import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 
-
-//
-//
-//@Composable
-//
-//fun TelaDescricacaoCampanhas(){
-//    Box(modifier = Modifier.fillMaxSize()
-//        .background(Color(0xffF9FAFB))
-//        .padding(top = 18.dp)
-//    ){
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(60.dp)
-//                .padding(horizontal = 10.dp, vertical = 12.dp)
-//                .align(Alignment.TopCenter)
-//                .zIndex(2f)
-//                .background(Color(0xFF298BE6), RoundedCornerShape(40)),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Row (
-//                modifier = Modifier.fillMaxWidth(),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Default.KeyboardArrowDown,
-//                    contentDescription = "Seta",
-//                    tint = Color.White,
-//                    modifier = Modifier.padding(start = 12.dp)
-//                )
-//                Text(
-//                    text = "Procure por uma unidade",
-//                    color = Color.White,
-//                    modifier = Modifier.weight(1f),
-//                    textAlign = TextAlign.Center
-//                )
-//                Icon(
-//                    imageVector = Icons.Default.Search,
-//                    contentDescription = "Pesquisar",
-//                    tint = Color.White,
-//                    modifier = Modifier.padding(end = 12.dp)
-//                )
-//            }
-//        }
-//
-//        Column (
-//            modifier = Modifier
-//                .fillMaxSize()
-//                //.background(color = Color.Cyan)
-//                .padding( start = 20.dp, end = 20.dp, top = 80.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            Text(
-//                text = "Informações",
-//                color = Color(0xff1E5FA3),
-//                textAlign = TextAlign.Center,
-//                fontSize = 20.sp,
-//                fontWeight = FontWeight.Bold,
-//                modifier = Modifier
-//                    .align(Alignment.CenterHorizontally)
-//            )
-//            Spacer(modifier = Modifier.height(15.dp))
-//            Card (
-//                modifier = Modifier
-//                    //.background(Color.Green)
-//                    .fillMaxWidth()
-//                    .height(200.dp)
-//                    .padding(top = 5.dp),
-//                RoundedCornerShape(20.dp),
-//                //colors = CardDefaults.cardColors(contentColor = Color.Green)
-//            ) {
-//                Image(
-//                    painter = painterResource(R.drawable.logo),
-//                    contentDescription = "",
-//                    modifier = Modifier.fillMaxSize(),
-//
-//                    )
-//            }
-//
-//
-//            Text(
-//                text = "A poliomielite, também conhecida como paralisia infantil, é uma doença contagiosa que pode causar sequelas permanentes e não tem cura. A vacinação é a única forma de prevenção. Durante o período da campanha, todas as crianças menores de 5 anos devem ser levadas às Unidades Básicas de Saúde para receber a dose. Além disso, os pais ou responsáveis podem aproveitar o momento para apresentar a caderneta de vacinação e atualizar outras vacinas em atraso. Vacinar é rápido, seguro e gratuito, e garante proteção para toda a vida.",
-//                color = Color(0xff094175),
-//                fontWeight = FontWeight.SemiBold,
-//                fontSize = 15.sp,
-//                modifier = Modifier
-//                    .padding(top = 12.dp)
-//                    .align(Alignment.CenterHorizontally)
-//
-//            )
-//
-//            Row (
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(top = 8.dp)
-//            ){
-//                Text(
-//                    text = "Data início:",
-//                    color = Color(0xff094175),
-//                    fontWeight = FontWeight.SemiBold,
-//                    fontSize = 15.sp,
-//                )
-//                Text(
-//                    text = " 25/10/2025"
-//                )
-//            }
-//            Row (
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//            ){
-//                Text(
-//                    text = "Data término:",
-//                    color = Color(0xff094175),
-//                    fontWeight = FontWeight.SemiBold,
-//                    fontSize = 15.sp,
-//                )
-//                Text(
-//                    text = " 10/12/2025"
-//                )
-//            }
-//
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//            ) {
-//                Text(
-//                    text = "Público Alvo:",
-//                    color = Color(0xff094175),
-//                    fontWeight = FontWeight.SemiBold,
-//                    fontSize = 15.sp,
-//                )
-//                Text(
-//                    text = " Crianças de 1 a 5 anos"
-//                )
-//            }
-//
-//            Row (
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//            ){
-//                Text(
-//                    text = "Tipo de unidade disponível:",
-//                    color = Color(0xff094175),
-//                    fontWeight = FontWeight.SemiBold,
-//                    fontSize = 15.sp,
-//                )
-//                Text(
-//                    text = " UBS e postos de saúde"
-//                )
-//            }
-//
-//            Row (
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//            ) {
-//                Text(
-//                    text = "Observações:",
-//                    color = Color(0xff094175),
-//                    fontWeight = FontWeight.SemiBold,
-//                    fontSize = 15.sp,
-//                )
-//                Text(
-//                    text = " Levar documento com foto e carteirinha de vacinação."
-//                )
-//            }
-//
-//            Text(
-//                text = "Cidades disponíveis:",
-//                color = Color(0xff094175),
-//                fontWeight = FontWeight.SemiBold,
-//                fontSize = 15.sp,
-//                modifier = Modifier
-//                    .padding(top = 8.dp, bottom = 8.dp)
-//            )
-//            Text(
-//                text = "Jandira",
-//                color = Color(0xff094175),
-//                fontWeight = FontWeight.SemiBold,
-//                fontSize = 15.sp,
-//            )
-//
-//            //INICIO DO COMPONENTE CARD DE UNIDADES
-//
-//            HorizontalDivider(
-//                color = Color(0xff8CC6FF)
-//            )
-//
-//            Card (
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    //.background(Color.Gray)
-//                    .padding(8.dp),
-//                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-//            ){
-//                Row {
-//                    Column {
-//                        Text(
-//                            text = "UBS Eunice",
-//                            fontSize = 18.sp,
-//                            modifier = Modifier
-//                                .padding(bottom = 8.dp),
-//                            color = Color(0xff135DB2),
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                        Row {
-//                            Icon(
-//                                imageVector = Icons.Default.Info,
-//                                contentDescription = "Relógio",
-//                                modifier = Modifier
-//                                    .padding(top = 5.dp, end = 5.dp),
-//                                tint = Color(0xff0B2A46)
-//                            )
-//                            Column () {
-//                                Text(
-//                                    text = "Tempo de espera",
-//                                    fontSize = 15.sp
-//                                )
-//                                Text(
-//                                    text = "15 minutos",
-//                                    color = Color(0xff135DB2),
-//                                    fontWeight = FontWeight.Bold,
-//                                    fontSize = 13.sp
-//                                )
-//                            }
-//
-//                        }
-//                    }
-//                    Button(
-//                        onClick = {},
-//                        colors = ButtonDefaults.buttonColors(
-//                            containerColor = Color(0XFF135DB2)
-//                        ),
-//                        modifier = Modifier
-//                            .padding(start = 70.dp)
-//                            .align(Alignment.CenterVertically)
-//                    ) {
-//                        Text(
-//                            text = "Saiba mais",
-//                            color = Color.White
-//                        )
-//                    }
-//                }
-//            }
-//            HorizontalDivider(
-//                color = Color(0xff8CC6FF)
-//            )
-//
-//            //FINALIZAÇÃO DO COMPONENTE
-//
-//
-//        }
-//    }
-//}
-//
-//
-//@Preview(showSystemUi = true)
-//@Composable
-//private fun TelaProfilePreview() {
-//    TelaDescricacaoCampanhas()
-//
-//}
-
 @Composable
-fun HomeCampanha(navController: NavHostController?){
-
-    val navController = rememberNavController()
-
+fun HomeCampanha(navController: NavHostController, id: Int) {
     Scaffold(
-        bottomBar = {
-            BarraDeNavegacaoCampanha(navController)
-        },
-        content = { paddingValues ->
-            Column (
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .background(color = MaterialTheme.colorScheme.background)
-            ){
-                NavHost(
-                    navController = navController,
-                    startDestination = "Home"
-                ) {
-                    composable(route = "Home"){ TelaDescricacaoCampanhas(paddingValues) }
-
-                }
-            }
-        }
-    )
+        bottomBar = { BarraDeNavegacaoCampanha(navController) }
+    ) { paddingValues ->
+        TelaDescricacaoCampanhas(paddingValues,id)
+    }
 }
 
 @Composable
@@ -413,7 +131,6 @@ fun BarraDeNavegacaoCampanha(navController: NavHostController?) {
 @Composable
 private fun BarraDeNavegacaoCampanhaPreview(){
     Tcc_PasTheme {
-
         BarraDeNavegacaoCampanha(null)
     }
 }
@@ -462,7 +179,7 @@ fun ExpandableSection(
 }
 
 @Composable
-fun TelaDescricacaoCampanhas(paddingValues: PaddingValues) {
+fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int) {
 
     var expandedSection by remember { mutableStateOf<String?>(null) }
 
@@ -583,11 +300,11 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues) {
 }
 
 
-
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
-private fun HomecampanhaPreview(){
+private fun HomecampanhaPreview() {
     Tcc_PasTheme {
-        HomeCampanha(null)
+        val navController = rememberNavController()
+        HomeCampanha(navController = navController, id = 1)
     }
 }
