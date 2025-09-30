@@ -21,4 +21,7 @@ interface PasService {
     @GET("campanhas/{id}")
     suspend fun getCampanha(@Path("id") id: Int): Response<CampanhaResponse>
 
+    @GET("filtrar") // post
+    suspend fun getFiltro (): Response<List<CampanhaResponse>>
+
 }

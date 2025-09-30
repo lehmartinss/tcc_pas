@@ -388,7 +388,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int) {
 
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Composable private fun HomecampanhaPreview() {
+@Composable private fun HomeCampanhaPreview() {
     Tcc_PasTheme {
         val navController = rememberNavController()
         HomeCampanha(navController = navController, id = 1)
