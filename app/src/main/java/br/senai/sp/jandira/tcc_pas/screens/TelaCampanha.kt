@@ -1,8 +1,6 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
 import android.content.res.Configuration
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,24 +13,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -40,28 +32,32 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import br.senai.sp.jandira.tcc_pas.R
+import br.senai.sp.jandira.tcc_pas.model.CampanhaResponse
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
+import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun HomeCampanha(navController: NavHostController, id: Int) {
@@ -170,7 +166,13 @@ fun ExpandableSection(
                 )
             }
 
+
             if (expanded) {
+                Divider(
+                    color = Color.LightGray,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
                 Spacer(Modifier.height(8.dp))
                 content()
             }
@@ -178,10 +180,45 @@ fun ExpandableSection(
     }
 }
 
+
+// FUNCAO PARA PERSONALIZAR TEXTO
+@Composable
+fun InfoText(label: String, value: String) {
+    Text(
+        buildAnnotatedString {
+            withStyle(style = SpanStyle(color = Color(0xFF0E3367),  fontWeight = FontWeight.Bold)) {
+                append("$label: ")
+            }
+            withStyle(style = SpanStyle(color = Color(0xffF9FAFB ), fontWeight = FontWeight.SemiBold)) {
+                append(value)
+            }
+        },
+        fontSize = 14.sp,
+        modifier = Modifier.padding(vertical = 2.dp)
+    )
+}
+
+
 @Composable
 fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int) {
 
     var expandedSection by remember { mutableStateOf<String?>(null) }
+    var campanha by remember { mutableStateOf<CampanhaResponse?>(null) }
+    var carregando by remember { mutableStateOf(true) }
+
+    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
+
+    // Buscar dados da campanha
+    LaunchedEffect(id) {
+        try {
+            val response = withContext(Dispatchers.IO) { apiCampanha.getCampanha(id) }
+            if (response.isSuccessful) {
+                campanha = response.body()
+            }
+        } finally {
+            carregando = false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -200,7 +237,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int) {
                 .background(Color(0xFF298BE6), RoundedCornerShape(40)),
             contentAlignment = Alignment.Center
         ) {
-            Row (
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -226,74 +263,124 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int) {
             }
         }
 
-        // CONTEÚDO
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 20.dp, end = 20.dp, top = 80.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 20.dp, vertical = 70.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            contentPadding = PaddingValues(bottom = 80.dp) // garante espaço para o último botão
         ) {
-            Text(
-                text = "Informações",
-                color = Color(0xff1E5FA3),
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(top = 5.dp),
-                shape = RoundedCornerShape(20.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.logo),
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxSize()
+            item {
+                Text(
+                    text = "Informações",
+                    color = Color(0xff1E5FA3),
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .padding(top = 5.dp),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+
+                    AsyncImage(
+                        model = campanha?.foto,
+                        contentDescription = "Imagem da campanha",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                campanha?.descricao?.let {
+                    Text(
+                        text = it,
+                        color = Color(0xff094175),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // TEXTO PRINCIPAL DA CAMPANHA
-            Text(
-                text = "A poliomielite, também conhecida como paralisia infantil, é uma doença contagiosa que pode causar sequelas permanentes e não tem cura. A vacinação é a única forma de prevenção. Durante o período da campanha, todas as crianças menores de 5 anos devem ser levadas às Unidades Básicas de Saúde para receber a dose. Além disso, os pais ou responsáveis podem aproveitar o momento para apresentar a caderneta de vacinação e atualizar outras vacinas em atraso. Vacinar é rápido, seguro e gratuito, e garante proteção para toda a vida.",
-                color = Color(0xff094175),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 13.sp,
-                modifier = Modifier.padding(top = 12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            // SEÇÃO EXPANDÍVEL
-            ExpandableSection(
-                title = "Datas da Campanha",
-                expanded = expandedSection == "datas",
-                onExpandChange = {
-                    expandedSection = if (expandedSection == "datas") null else "datas"
-                }
-            ) {
-                Column {
-                    Text("Início: 25/10/2025")
-                    Text("Término: 10/12/2025")
-                }
+            item {
+                ExpandableSection(
+                    title = "Informações",
+                    expanded = expandedSection == "informacoes",
+                    onExpandChange = {
+                        expandedSection =
+                            if (expandedSection == "informacoes") null else "informacoes"
+                    },
+                    content = {
+                        Column(modifier = Modifier.padding(start = 8.dp)) {
+                            campanha?.publico_alvo?.let { InfoText("Público alvo", it) }
+                            campanha?.tipo?.let { InfoText("Tipo", it) }
+                            campanha?.tipo_unidade_disponivel?.let {
+                                InfoText(
+                                    "Tipo unidade disponível",
+                                    it
+                                )
+                            }
+                            campanha?.dias_horario?.let { InfoText("Dias/Horário", it) }
+                            campanha?.observacoes?.let { InfoText("Observações", it) }
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            ExpandableSection(
-                title = "Datas da Campanha",
-                expanded = expandedSection == "datas",
-                onExpandChange = {
-                    expandedSection = if (expandedSection == "datas") null else "datas"
-                }
-            ) {
-                Column {
-                    Text("Início: 25/10/2025")
-                    Text("Término: 10/12/2025")
-                }
+
+            item {
+                ExpandableSection(
+                    title = "Localização",
+                    expanded = expandedSection == "localizacao",
+                    onExpandChange = {
+                        expandedSection =
+                            if (expandedSection == "localizacao") null else "localizacao"
+                    },
+                    content = {
+                        Column(modifier = Modifier.padding(start = 8.dp)) {
+                            campanha?.cidades?.forEach { cidadeItem ->
+                                // Nome da cidade (preto)
+                                InfoText("Cidade", cidadeItem.cidade)
+
+                                // Unidades (azul)
+                                cidadeItem.unidades_disponiveis.forEach { unidade ->
+                                    Text(
+                                        text = "- $unidade",
+                                        color = Color(0xffF9FAFB),
+                                        fontSize = 14.sp,
+                                        modifier = Modifier.padding(start = 16.dp, bottom = 2.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+                            }
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            item {
+                ExpandableSection(
+                    title = "Datas da Campanha",
+                    expanded = expandedSection == "datas",
+                    onExpandChange = {
+                        expandedSection = if (expandedSection == "datas") null else "datas"
+                    },
+                    content = {
+                        Column(modifier = Modifier.padding(start = 8.dp)) {
+                            campanha?.data_inicio?.let { InfoText("Início", it) }
+                            campanha?.data_termino?.let { InfoText("Término", it) }
+                        }
+                    }
+                )
             }
         }
     }
@@ -301,10 +388,11 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int) {
 
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Composable
-private fun HomecampanhaPreview() {
+@Composable private fun HomecampanhaPreview() {
     Tcc_PasTheme {
         val navController = rememberNavController()
         HomeCampanha(navController = navController, id = 1)
     }
 }
+
+
