@@ -37,6 +37,12 @@ android {
     buildFeatures {
         compose = true
     }
+
+    packaging {
+        resources {
+            pickFirsts += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
 }
 
 dependencies {
@@ -51,6 +57,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.compose.testing)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,4 +73,6 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.3")
 
     implementation("io.coil-kt:coil-compose:2.4.0")
+
+    implementation("androidx.compose.foundation:foundation:1.7.3")
 }
