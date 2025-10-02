@@ -1,10 +1,12 @@
 package br.senai.sp.jandira.tcc_pas.service
 
 import br.senai.sp.jandira.tcc_pas.model.CampanhaResponse
+import br.senai.sp.jandira.tcc_pas.model.Filtros
 import retrofit2.Call
 import retrofit2.http.Body
 import br.senai.sp.jandira.tcc_pas.model.Login
 import br.senai.sp.jandira.tcc_pas.model.LoginResponse
+import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -21,7 +23,9 @@ interface PasService {
     @GET("campanhas/{id}")
     suspend fun getCampanha(@Path("id") id: Int): Response<CampanhaResponse>
 
-    @GET("filtrar") // post
-    suspend fun getFiltro (): Response<List<CampanhaResponse>>
+    @POST("filtros")
+    suspend fun filtrarUnidades(@Body filtros: Filtros): Response<List<UnidadeDeSaude>>
+
+
 
 }

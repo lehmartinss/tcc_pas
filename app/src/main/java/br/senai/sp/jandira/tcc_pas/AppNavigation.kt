@@ -19,7 +19,7 @@ import br.senai.sp.jandira.tcc_pas.screens.TelaMapa
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "mapafiltrado") {
+    NavHost(navController = navController, startDestination = "home") {
         composable("login") { TelaLogin(navController) }
         composable("home") { HomeScreen(navController) }
         composable(

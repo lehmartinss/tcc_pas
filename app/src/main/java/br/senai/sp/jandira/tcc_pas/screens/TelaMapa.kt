@@ -169,26 +169,38 @@ fun TelaMapa(navController: NavHostController) {
                     .zIndex(2f)
             ) {
                 Box(
-                    Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
-                        .background(Color(0xFF298BE6), RoundedCornerShape(40))
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 10.dp, vertical = 12.dp)
+                        .align(Alignment.TopCenter)
+                        .zIndex(2f)
+                        .background(Color(0xFF298BE6), RoundedCornerShape(40)),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
-                        Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(Icons.Default.KeyboardArrowDown, null, tint = Color.White)
-                        Text(
-                            text = stringResource(R.string.pesquisa),
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f)
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Seta",
+                            tint = Color.White,
+                            modifier = Modifier.padding(start = 12.dp)
                         )
-                        Icon(Icons.Default.Search, null, tint = Color.White)
+                        Text(
+                            text = "Procure por uma unidade",
+                            color = Color.White,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Pesquisar",
+                            tint = Color.White,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
                     }
                 }
             }

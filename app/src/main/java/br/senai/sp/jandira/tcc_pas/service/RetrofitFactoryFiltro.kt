@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitFactoryFiltro {
 
-        private val BASE_URL = "http://10.107.144.25:8080/v1/pas/unidades"
+        private val BASE_URL = "http://10.107.140.33:8080/v1/pas/unidades"
 
         private  val retrofitFactory =
             Retrofit

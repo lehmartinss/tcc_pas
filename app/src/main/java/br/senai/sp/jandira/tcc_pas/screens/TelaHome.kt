@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,18 +30,28 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,16 +64,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.AppNavigation
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.CampanhaResponse
+import br.senai.sp.jandira.tcc_pas.model.Categoria
+import br.senai.sp.jandira.tcc_pas.model.Especialidade
+import br.senai.sp.jandira.tcc_pas.model.Filtros
+import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltro
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import coil.compose.AsyncImage
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -101,42 +120,7 @@ fun HomeScreen(navController: NavHostController) {
                 .background(Color(0xFF93979F))
         )
 
-        // Barra superior azul
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .padding(horizontal = 10.dp, vertical = 12.dp)
-                .align(Alignment.TopCenter)
-                .zIndex(2f)
-                .background(Color(0xFF298BE6), RoundedCornerShape(40)),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Seta",
-                    tint = Color.White,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-                Text(
-                    text = stringResource(R.string.pesquisa),
-                    color = Color.White,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Pesquisar",
-                    tint = Color.White,
-                    modifier = Modifier.padding(end = 12.dp)
-                )
-            }
-        }
+        BarraDePesquisaComFiltros()
 
         Card(
             modifier = Modifier
@@ -260,8 +244,248 @@ fun HomeScreen(navController: NavHostController) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BarraDePesquisaComFiltros() {
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showBottomSheet by remember { mutableStateOf(false) }
+
+    // Estados dos filtros
+    var categoriaSelecionada by remember { mutableStateOf("") }
+    var especialidadeSelecionada by remember { mutableStateOf("") }
+    var is24h by remember { mutableStateOf(false) }
+
+    val filtroService = remember { RetrofitFactoryFiltro().getFiltroService() }
+    var especialidades by remember { mutableStateOf<List<Especialidade>>(emptyList()) }
+    var categorias by remember { mutableStateOf<List<Categoria>>(emptyList()) }
+
+    // Simulação: carregar categorias e especialidades quando abrir
+    LaunchedEffect(showBottomSheet) {
+        if (showBottomSheet) {
+            // Aqui vc chamaria a API real para buscar categorias/especialidades
+            categorias = listOf(Categoria("Clínica"), Categoria("Hospital"))
+            especialidades = listOf(Especialidade("Cardiologia"), Especialidade("Pediatria"))
+        }
+    }
+
+    Column {
+        // Barra de pesquisa (abre o filtro)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .padding(horizontal = 10.dp, vertical = 12.dp)
+                .background(Color(0xFF298BE6), RoundedCornerShape(40))
+                .clickable {
+                    showBottomSheet = true
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+//                Icon(
+//                    imageVector = Icons.Default.KeyboardArrowDown,
+//                    contentDescription = "Seta",
+//                    tint = Color.White,
+//                    modifier = Modifier.padding(start = 12.dp)
+//                )
+                Text(
+                    text = "Pesquisar...",
+                    color = Color.White,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+//                Icon(
+//                    imageVector = Icons.Default.Search,
+//                    contentDescription = "Pesquisar",
+//                    tint = Color.White,
+//                    modifier = Modifier.padding(end = 12.dp)
+//                )
+            }
+        }
+    }
+
+    // BottomSheet com filtros
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Text("Categorias", style = MaterialTheme.typography.titleMedium)
+                categorias.forEach { categoria ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { categoriaSelecionada = categoria.nome }
+                            .padding(vertical = 4.dp)
+                    ) {
+                        RadioButton(
+                            selected = categoriaSelecionada == categoria.nome,
+                            onClick = { categoriaSelecionada = categoria.nome }
+                        )
+                        Text(categoria.nome)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text("Especialidades", style = MaterialTheme.typography.titleMedium)
+                especialidades.forEach { esp ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { especialidadeSelecionada = esp.nome }
+                            .padding(vertical = 4.dp)
+                    ) {
+                        RadioButton(
+                            selected = especialidadeSelecionada == esp.nome,
+                            onClick = { especialidadeSelecionada = esp.nome }
+                        )
+                        Text(esp.nome)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = is24h,
+                        onCheckedChange = { is24h = it }
+                    )
+                    Text("Atendimento 24h")
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Button(
+                    onClick = {
+                        scope.launch {
+                            val filtros = Filtros(
+                                categoria = categoriaSelecionada,
+                                especialidade = especialidadeSelecionada
+                            )
+                            try {
+                                val response = filtroService.filtrarUnidades(filtros)
+                                if (response.isSuccessful) {
+                                    val unidades = response.body() ?: emptyList()
+                                    println("Resultado filtros: $unidades")
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                            showBottomSheet = false
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Filtrar")
+                }
+            }
+        }
+    }
+}
 
 
+
+
+//@Composable
+//fun BarraDePesquisaComFiltros() {
+//    var expanded by remember { mutableStateOf(false) } // Controla a exibição do dropdown
+//    var selectedFilter by remember { mutableStateOf("Todos") } // Filtro selecionado
+//
+//    Column {
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(60.dp)
+//                .padding(horizontal = 10.dp, vertical = 12.dp)
+//                .zIndex(2f)
+//                .background(Color(0xFF298BE6), RoundedCornerShape(40))
+//                .clickable(
+//                    interactionSource = remember { MutableInteractionSource() },
+//                    indication = null
+//                ) {
+//                    expanded = true
+//                },
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.SpaceBetween
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Default.KeyboardArrowDown,
+//                    contentDescription = "Seta",
+//                    tint = Color.White,
+//                    modifier = Modifier.padding(start = 12.dp)
+//                )
+//                Text(
+//                    text = stringResource(id = R.string.pesquisa), // Certifique-se de ter esse string no strings.xml
+//                    color = Color.White,
+//                    modifier = Modifier.weight(1f),
+//                    textAlign = TextAlign.Center
+//                )
+//                Icon(
+//                    imageVector = Icons.Default.Search,
+//                    contentDescription = "Pesquisar",
+//                    tint = Color.White,
+//                    modifier = Modifier.padding(end = 12.dp)
+//                )
+//            }
+//
+//            // Exibindo o menu de filtros
+//            DropdownMenu(
+//                expanded = expanded,
+//                onDismissRequest = { expanded = false },
+//                modifier = Modifier.fillMaxWidth()
+//            ) {
+//                DropdownMenuItem(
+//                    text = { Text("Todos", color = Color.Black) },
+//                    onClick = {
+//                        selectedFilter = "Todos"
+//                        expanded = false
+//                    }
+//                )
+//                DropdownMenuItem(
+//                    text = { Text("Unidades próximas", color = Color.Black) },
+//                    onClick = {
+//                        selectedFilter = "Unidades próximas"
+//                        expanded = false
+//                    }
+//                )
+//                DropdownMenuItem(
+//                    text = { Text("Disponíveis 24h", color = Color.Black) },
+//                    onClick = {
+//                        selectedFilter = "Disponíveis 24h"
+//                        expanded = false
+//                    }
+//                )
+//                DropdownMenuItem(
+//                    text = { Text("Categorias Específicas", color = Color.Black) },
+//                    onClick = {
+//                        selectedFilter = "Categorias Específicas"
+//                        expanded = false
+//                    }
+//                )
+//            }
+//        }
+//    }
+//}
+
+
+// ESTA FUNCIOANDO
 
 @Composable
 fun BarraDeNavegacao(navController: NavHostController?) {
