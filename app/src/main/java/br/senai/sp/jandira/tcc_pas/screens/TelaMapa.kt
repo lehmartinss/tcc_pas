@@ -58,17 +58,24 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
+import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 
 
 @Composable
 fun HomeMapa(navController: NavHostController) {
-    TelaMapa(navController)
+    val unidadesFiltradas = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<List<UnidadeDeSaude>>("unidadesFiltradas") ?: emptyList()
+
+    TelaMapa(navController, unidadesFiltradas)
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TelaMapa(navController: NavHostController) {
+fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
+
 
     val density = LocalDensity.current
     var navBarHeight by remember { mutableStateOf(0.dp) }
@@ -171,37 +178,9 @@ fun TelaMapa(navController: NavHostController) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
-                        .padding(horizontal = 10.dp, vertical = 12.dp)
-                        .align(Alignment.TopCenter)
-                        .zIndex(2f)
-                        .background(Color(0xFF298BE6), RoundedCornerShape(40)),
-                    contentAlignment = Alignment.Center
+                        .zIndex(10f) // ⚡ Fica acima de tudo
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Seta",
-                            tint = Color.White,
-                            modifier = Modifier.padding(start = 12.dp)
-                        )
-                        Text(
-                            text = "Procure por uma unidade",
-                            color = Color.White,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Pesquisar",
-                            tint = Color.White,
-                            modifier = Modifier.padding(end = 12.dp)
-                        )
-                    }
+                    BarraDePesquisaComFiltros(navController = navController)
                 }
             }
 

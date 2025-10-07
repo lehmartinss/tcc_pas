@@ -78,4 +78,11 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
 
     implementation("androidx.compose.foundation:foundation:1.7.3")
+
+    implementation("androidx.compose.material:material-icons-core")
+
+    implementation("androidx.compose.material:material-icons-extended")
+
+    implementation("com.google.accompanist:accompanist-flowlayout:0.32.0")
+
 }

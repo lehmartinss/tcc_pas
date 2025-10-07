@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- PERMITE HTTP PARA O SERVIDOR RENDER -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">api-fake-de-usuarios-com-json-server-3.onrender.com</domain>
     </domain-config>
-</network-security-config>
 
+
+    <!-- PERMITE HTTP PARA O SERVIDOR LOCAL -->
+<domain-config cleartextTrafficPermitted="true">
+<domain includeSubdomains="true">10.107.134.34</domain>
+</domain-config>
+    </network-security-config>

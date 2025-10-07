@@ -64,7 +64,7 @@ fun HomeCampanha(navController: NavHostController, id: Int) {
     Scaffold(
         bottomBar = { BarraDeNavegacaoCampanha(navController) }
     ) { paddingValues ->
-        TelaDescricacaoCampanhas(paddingValues,id)
+        TelaDescricacaoCampanhas(paddingValues,id, navController)
     }
 }
 
@@ -200,7 +200,7 @@ fun InfoText(label: String, value: String) {
 
 
 @Composable
-fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int) {
+fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navController: NavHostController) {
 
     var expandedSection by remember { mutableStateOf<String?>(null) }
     var campanha by remember { mutableStateOf<CampanhaResponse?>(null) }
@@ -226,42 +226,15 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int) {
             .background(Color(0xffF9FAFB))
             .padding(top = 18.dp)
     ) {
-        // TOPO AZUL
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp)
-                .padding(horizontal = 10.dp, vertical = 12.dp)
-                .align(Alignment.TopCenter)
-                .zIndex(2f)
-                .background(Color(0xFF298BE6), RoundedCornerShape(40)),
-            contentAlignment = Alignment.Center
+                .zIndex(10f)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Seta",
-                    tint = Color.White,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-                Text(
-                    text = "Procure por uma unidade",
-                    color = Color.White,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Pesquisar",
-                    tint = Color.White,
-                    modifier = Modifier.padding(end = 12.dp)
-                )
-            }
+            BarraDePesquisaComFiltros(navController = navController)
         }
+
 
         LazyColumn(
             modifier = Modifier

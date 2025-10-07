@@ -3,9 +3,9 @@ package br.senai.sp.jandira.tcc_pas.service
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class RetrofitFactoryFiltro {
+class RetrofitFactoryFiltroDisponibilidade {
 
-        private val BASE_URL = "http://10.107.140.33:8080/v1/pas/unidades"
+        private val BASE_URL = "https://api-tcc-node-js-1.onrender.com/"
 
         private  val retrofitFactory =
             Retrofit
@@ -15,7 +15,7 @@ class RetrofitFactoryFiltro {
                 .build()
 
 
-        fun getFiltroService(): PasService {
+        fun getDisponibilidadeService(): PasService {
             return retrofitFactory.create(PasService::class.java)
         }
 
