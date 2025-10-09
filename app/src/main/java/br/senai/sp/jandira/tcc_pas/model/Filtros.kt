@@ -9,8 +9,10 @@ data class FiltrarUnidadesResponse(
 
 data class Filtros(
     val categoria: String?,
-    val especialidade: String?
+    val especialidade: String?,
+    val disponibilidade24h: Int? = null
 )
+
 
 
 data class UnidadeDeSaude(
@@ -103,5 +105,10 @@ data class EspecialidadeResponse(
     val status_code: Int,
     val item: Int,
     val especialidades: List<Especialidade>
+)
+
+data class ItemComFoto(
+    val nome: String,
+    val fotoClaro: String?
 )
 

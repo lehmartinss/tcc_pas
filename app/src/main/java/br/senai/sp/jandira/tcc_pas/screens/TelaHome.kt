@@ -47,6 +47,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -87,7 +88,6 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
 
-
 @Composable
 fun HomeScreen(navController: NavHostController) {
 
@@ -96,8 +96,7 @@ fun HomeScreen(navController: NavHostController) {
     var campanhas by remember { mutableStateOf<List<CampanhaResponse>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
 
-    //  CARREGA E LISTA AS CAMPANHAS
-
+    // Carrega campanhas
     LaunchedEffect(Unit) {
         try {
             val response = withContext(Dispatchers.IO) { apiCampanha.listarCampanhas() }
@@ -111,141 +110,156 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        // Fundo do mapa
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(326.dp)
-                .background(Color(0xFF93979F))
-        )
+    Scaffold(
+        bottomBar = { BarraDeNavegacao(navController = navController) }
+    ) { paddingValues ->
 
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .zIndex(10f)
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(paddingValues) // evita sobreposição da barra de navegação
         ) {
-            BarraDePesquisaComFiltros(navController = navController)
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.6f)
-                .align(Alignment.BottomCenter)
-                .zIndex(1f),
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Spacer(modifier = Modifier.height(35.dp))
-            Column(
+            // Fundo do mapa
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState())
+                    .height(326.dp)
+                    .background(Color(0xFF93979F))
+            )
+
+            // Barra de pesquisa
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(10f)
             ) {
-                Card(
+                BarraDePesquisaComFiltros(navController = navController)
+            }
+
+
+
+            // Card das campanhas
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.6f)
+                    .align(Alignment.BottomCenter)
+                    .zIndex(1f),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Spacer(modifier = Modifier.height(35.dp))
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFB4D7F2))
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
+
+                    // Card de informação fixa
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFB4D7F2))
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            Text(
-                                text = stringResource(R.string.cardInfo),
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.height(1.dp))
-                            Text(
-                                text = stringResource(R.string.cardInfo2),
-                                textAlign = TextAlign.Center,
-                                color = Color(0xFF1E5FA3),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                Text(
-                    text = stringResource(R.string.informacaoHome),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = Color.Black,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                if (carregando) {
-                    Text(
-                        "Carregando campanhas...",
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                } else {
-                    val lazyListState = rememberLazyListState()
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        flingBehavior = rememberSnapFlingBehavior(lazyListState),
-                        state = lazyListState
-                    ) {
-                        items(campanhas) { campanha ->
-                            Card(
-                                modifier = Modifier
-                                    .fillParentMaxWidth()
-                                    .height(180.dp)
-                                    .padding(horizontal = 16.dp)
-                                    .clickable {
-                                        navController.navigate("campanha/${campanha.id}")
-                                    },
-                                shape = RoundedCornerShape(12.dp)
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
-                                AsyncImage(
-                                    model = campanha.foto,
-                                    contentDescription = "Imagem da campanha",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
+                                Text(
+                                    text = stringResource(R.string.cardInfo),
+                                    textAlign = TextAlign.Center,
+                                    color = Color.Black,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(modifier = Modifier.height(1.dp))
+                                Text(
+                                    text = stringResource(R.string.cardInfo2),
+                                    textAlign = TextAlign.Center,
+                                    color = Color(0xFF1E5FA3),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(40.dp))
 
-                    // Indicador de bolinhas
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        campanhas.forEachIndexed { index, _ ->
-                            val isSelected = lazyListState.firstVisibleItemIndex == index
-                            Box(
-                                modifier = Modifier
-                                    .size(if (isSelected) 12.dp else 8.dp)
-                                    .padding(2.dp)
-                                    .background(
-                                        if (isSelected) Color(0xFF298BE6) else Color.LightGray,
-                                        shape = CircleShape
+                    Text(
+                        text = stringResource(R.string.informacaoHome),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = Color.Black,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    // Lista de campanhas
+                    if (carregando) {
+                        Text(
+                            "Carregando campanhas...",
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    } else {
+                        val lazyListState = rememberLazyListState()
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            flingBehavior = rememberSnapFlingBehavior(lazyListState),
+                            state = lazyListState
+                        ) {
+                            items(campanhas) { campanha ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillParentMaxWidth()
+                                        .height(180.dp)
+                                        .padding(horizontal = 16.dp)
+                                        .clickable {
+                                            navController.navigate("campanha/${campanha.id}")
+                                        },
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    AsyncImage(
+                                        model = campanha.foto,
+                                        contentDescription = "Imagem da campanha",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
                                     )
-                            )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Indicador de bolinhas
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            campanhas.forEachIndexed { index, _ ->
+                                val isSelected =
+                                    lazyListState.firstVisibleItemIndex == index
+                                Box(
+                                    modifier = Modifier
+                                        .size(if (isSelected) 12.dp else 8.dp)
+                                        .padding(2.dp)
+                                        .background(
+                                            if (isSelected) Color(0xFF298BE6) else Color.LightGray,
+                                            shape = CircleShape
+                                        )
+                                )
+                            }
                         }
                     }
                 }
@@ -253,9 +267,6 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
 }
-
-
-// ESTA FUNCIOANDO
 
 @Composable
 fun BarraDeNavegacao(navController: NavHostController?) {
@@ -312,22 +323,271 @@ fun BarraDeNavegacao(navController: NavHostController?) {
 
 }
 
-@Preview
+
+
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
-private fun BarraDeNavegacaoPreview(){
+fun HomeScreenPreview() {
     Tcc_PasTheme {
-        BarraDeNavegacao(null)
+        HomeScreen(navController = rememberNavController())
+    }
+}
+// Preview da Barra de Navegação sozinha
+@Preview(showBackground = true)
+@Composable
+fun BarraDeNavegacaoPreview() {
+    Tcc_PasTheme {
+        BarraDeNavegacao(navController = rememberNavController())
     }
 }
 
 
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Composable
-fun HomeScreenPreview() {
-    Tcc_PasTheme {
-        HomeScreen(navController = rememberNavController())    }
-}
+
+
+//
+//@Composable
+//fun HomeScreen(navController: NavHostController) {
+//
+//    // Retrofit da API de campanhas
+//    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
+//    var campanhas by remember { mutableStateOf<List<CampanhaResponse>>(emptyList()) }
+//    var carregando by remember { mutableStateOf(true) }
+//
+//    //  CARREGA E LISTA AS CAMPANHAS
+//
+//    LaunchedEffect(Unit) {
+//        try {
+//            val response = withContext(Dispatchers.IO) { apiCampanha.listarCampanhas() }
+//            if (response.isSuccessful) {
+//                response.body()?.let { campanhas = it }
+//            }
+//        } catch (e: Exception) {
+//            Log.e("TelaHome", "Erro ao buscar campanhas: ${e.message}")
+//        } finally {
+//            carregando = false
+//        }
+//    }
+//
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(Color.White)
+//    ) {
+//        // Fundo do mapa
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(326.dp)
+//                .background(Color(0xFF93979F))
+//        )
+//
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .zIndex(10f)
+//        ) {
+//            BarraDePesquisaComFiltros(navController = navController)
+//        }
+//
+//        Card(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .fillMaxHeight(0.6f)
+//                .align(Alignment.BottomCenter)
+//                .zIndex(1f),
+//            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+//            colors = CardDefaults.cardColors(containerColor = Color.White)
+//        ) {
+//            Spacer(modifier = Modifier.height(35.dp))
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp)
+//                    .verticalScroll(rememberScrollState())
+//            ) {
+//                Card(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(80.dp),
+//                    shape = RoundedCornerShape(12.dp),
+//                    colors = CardDefaults.cardColors(containerColor = Color(0xFFB4D7F2))
+//                ) {
+//                    Box(
+//                        contentAlignment = Alignment.Center,
+//                        modifier = Modifier.fillMaxSize()
+//                    ) {
+//                        Column(
+//                            horizontalAlignment = Alignment.CenterHorizontally,
+//                            verticalArrangement = Arrangement.Center
+//                        ) {
+//                            Text(
+//                                text = stringResource(R.string.cardInfo),
+//                                textAlign = TextAlign.Center,
+//                                color = Color.Black,
+//                                fontSize = 14.sp,
+//                                fontWeight = FontWeight.SemiBold
+//                            )
+//                            Spacer(modifier = Modifier.height(1.dp))
+//                            Text(
+//                                text = stringResource(R.string.cardInfo2),
+//                                textAlign = TextAlign.Center,
+//                                color = Color(0xFF1E5FA3),
+//                                fontSize = 14.sp,
+//                                fontWeight = FontWeight.SemiBold
+//                            )
+//                        }
+//                    }
+//                }
+//
+//                Spacer(modifier = Modifier.height(40.dp))
+//
+//                Text(
+//                    text = stringResource(R.string.informacaoHome),
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 20.sp,
+//                    color = Color.Black,
+//                    modifier = Modifier.align(Alignment.CenterHorizontally)
+//                )
+//
+//                Spacer(modifier = Modifier.height(40.dp))
+//
+//                if (carregando) {
+//                    Text(
+//                        "Carregando campanhas...",
+//                        modifier = Modifier.align(Alignment.CenterHorizontally)
+//                    )
+//                } else {
+//                    val lazyListState = rememberLazyListState()
+//                    LazyRow(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        flingBehavior = rememberSnapFlingBehavior(lazyListState),
+//                        state = lazyListState
+//                    ) {
+//                        items(campanhas) { campanha ->
+//                            Card(
+//                                modifier = Modifier
+//                                    .fillParentMaxWidth()
+//                                    .height(180.dp)
+//                                    .padding(horizontal = 16.dp)
+//                                    .clickable {
+//                                        navController.navigate("campanha/${campanha.id}")
+//                                    },
+//                                shape = RoundedCornerShape(12.dp)
+//                            ) {
+//                                AsyncImage(
+//                                    model = campanha.foto,
+//                                    contentDescription = "Imagem da campanha",
+//                                    contentScale = ContentScale.Crop,
+//                                    modifier = Modifier.fillMaxSize()
+//                                )
+//                            }
+//                        }
+//                    }
+//
+//                    Spacer(modifier = Modifier.height(12.dp))
+//
+//                    // Indicador de bolinhas
+//                    Row(
+//                        horizontalArrangement = Arrangement.Center,
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier.fillMaxWidth()
+//                    ) {
+//                        campanhas.forEachIndexed { index, _ ->
+//                            val isSelected = lazyListState.firstVisibleItemIndex == index
+//                            Box(
+//                                modifier = Modifier
+//                                    .size(if (isSelected) 12.dp else 8.dp)
+//                                    .padding(2.dp)
+//                                    .background(
+//                                        if (isSelected) Color(0xFF298BE6) else Color.LightGray,
+//                                        shape = CircleShape
+//                                    )
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//
+//// ESTA FUNCIOANDO
+//
+//@Composable
+//fun BarraDeNavegacao(navController: NavHostController?) {
+//    NavigationBar(
+//        containerColor = Color(0xFF298BE6)
+//    ) {
+//        NavigationBarItem(
+//            selected = false,
+//            onClick = {navController!!.navigate(route = "Home")},
+//            icon = {
+//                Icon(
+//                    imageVector = Icons.Default.Home,
+//                    contentDescription = "Home",
+//                    tint = MaterialTheme.colorScheme.onPrimary
+//                )
+//            },
+//            label = {
+//                Text(text = "Início",
+//                    color = MaterialTheme.colorScheme.onPrimary)
+//            }
+//        )
+//        NavigationBarItem(
+//            selected = false,
+//            onClick = {navController!!.navigate(route = "mapa")},
+//            icon = {
+//                Icon(
+//                    imageVector = Icons.Default.LocationOn,
+//                    contentDescription = "Mapa",
+//                    tint = MaterialTheme.colorScheme.onPrimary
+//                )
+//            },
+//            label = {
+//                Text(text = "Mapa",
+//                    color = MaterialTheme.colorScheme.onPrimary
+//                )
+//            }
+//        )
+//        NavigationBarItem(
+//            selected = false,
+//            onClick = {navController!!.navigate(route = "perfil")},
+//            icon = {
+//                Icon(
+//                    imageVector = Icons.Default.Person,
+//                    contentDescription = "Perfil",
+//                    tint = MaterialTheme.colorScheme.onPrimary
+//                )
+//            },
+//            label = {
+//                Text(text = "Perfil",
+//                    color = MaterialTheme.colorScheme.onPrimary)
+//            }
+//        )
+//    }
+//
+//}
+//
+//@Preview
+//@Composable
+//private fun BarraDeNavegacaoPreview(){
+//    Tcc_PasTheme {
+//        BarraDeNavegacao(null)
+//    }
+//}
+//
+//
+//
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+//@Composable
+//fun HomeScreenPreview() {
+//    Tcc_PasTheme {
+//        HomeScreen(navController = rememberNavController())    }
+//}
 
 
 

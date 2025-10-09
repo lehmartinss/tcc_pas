@@ -150,10 +150,17 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                             .heightIn(min = screenH)
                             .padding(horizontal = 16.dp, vertical = 16.dp)
                     ) {
-                        CartaoUnidade("Hospital Municipal de Barueri Dr. Francisco Moran", "5 minutos")
-                        Spacer(Modifier.height(8.dp))
-                        CartaoUnidade("Hospital Nove de Julho", "20 minutos")
-                        Spacer(Modifier.height(16.dp))
+                        if (unidades.isNotEmpty()) {
+                            unidades.forEach { unidade ->
+                                CartaoUnidade(
+                                    nomeUnidade = unidade.nome ?: "Sem nome"
+                                )
+                                Spacer(Modifier.height(8.dp))
+                            }
+                        } else {
+                            Text("Nenhuma unidade encontrada", color = Color.Gray)
+                        }
+
                     }
                 },
                 containerColor = Color.Transparent
@@ -178,7 +185,7 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .zIndex(10f) // ⚡ Fica acima de tudo
+                        .zIndex(10f)
                 ) {
                     BarraDePesquisaComFiltros(navController = navController)
                 }
@@ -230,7 +237,7 @@ fun BarraDeNavegacaoMapa(navController: NavHostController?) {
 
 
 @Composable
-fun CartaoUnidade(nomeUnidade: String, tempoEspera: String) {
+fun CartaoUnidade(nomeUnidade: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -255,10 +262,6 @@ fun CartaoUnidade(nomeUnidade: String, tempoEspera: String) {
                         tint = Color(0xFF123B6D)
                     )
                     Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = "Tempo de espera: $tempoEspera",
-                        color = Color(0xFF123B6D)
-                    )
                 }
                 Button(
                     onClick = { /* ação de saber mais */ },
@@ -287,234 +290,6 @@ private fun BarraDeNavegacaoMapaPreview() {
         BarraDeNavegacaoMapa(null)
     }
 }
-
-
-
-
-
-
-
-
-
-
-//
-//@Composable
-//fun HomeMapa(navController: NavHostController) {
-//    Scaffold(
-//        bottomBar = { BarraDeNavegacaoCampanha(navController) }
-//    ) { paddingValues ->
-//        TelaMapa(paddingValues)
-//    }
-//}
-//
-//
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun TelaMapa(paddingValues: PaddingValues) {
-//    val sheetState = rememberModalBottomSheetState(
-//        skipPartiallyExpanded = false
-//    )
-//
-//    // Abre o sheet automaticamente ao entrar na tela
-//    LaunchedEffect(Unit) {
-//        sheetState.show()
-//    }
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(Color.White)
-//    ) {
-//        // Fundo do mapa
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .fillMaxHeight()
-//
-//                .background(Color(0xFF93979F))
-//        )
-//
-//        // Barra superior azul
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(60.dp)
-//                .padding(horizontal = 10.dp, vertical = 12.dp)
-//                .align(Alignment.TopCenter)
-//                .zIndex(2f)
-//                .background(Color(0xFF298BE6), RoundedCornerShape(40)),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Default.KeyboardArrowDown,
-//                    contentDescription = "Seta",
-//                    tint = Color.White,
-//                    modifier = Modifier.padding(start = 12.dp)
-//                )
-//                Text(
-//                    text = stringResource(R.string.pesquisa),
-//                    color = Color.White,
-//                    modifier = Modifier.weight(1f),
-//                    textAlign = TextAlign.Center
-//                )
-//                Icon(
-//                    imageVector = Icons.Default.Search,
-//                    contentDescription = "Pesquisar",
-//                    tint = Color.White,
-//                    modifier = Modifier.padding(end = 12.dp)
-//                )
-//            }
-//            Scaffold(
-//            ) { paddingValues ->
-//                ModalBottomSheet(
-//                    onDismissRequest = { /* Pode implementar se quiser */ },
-//                    sheetState = sheetState,
-//                    dragHandle = null,
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .padding(paddingValues)
-//                ) {
-//
-//                    Spacer(modifier = Modifier.height(16.dp))
-//
-//                    // Cartões de unidades
-//                    Column(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(horizontal = 16.dp)
-//                    ) {
-//                        CartaoUnidade(
-//                            "Hospital Municipal de Barueri Dr. Francisco Moran",
-//                            "5 minutos"
-//                        )
-//
-//                        Spacer(modifier = Modifier.height(8.dp))
-//
-//                        CartaoUnidade("Hospital Nove de Julho", "20 minutos")
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
-//@Composable
-//private fun TelaMapaPreview() {
-//    Tcc_PasTheme {
-//        val navController = rememberNavController()
-//        HomeMapa(navController = navController)
-//        }
-//    }
-//
-//
-//@Composable
-//fun CartaoUnidade(nomeUnidade: String, tempoEspera: String) {
-//    Column(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .background(Color(0xFFEAF2FB), RoundedCornerShape(16.dp))
-//            .padding(16.dp)
-//        ) {
-//            Text(
-//                text = nomeUnidade,
-//                style = MaterialTheme.typography.titleMedium,
-//                color = Color(0xFF123B6D)
-//            )
-//            Spacer(Modifier.height(8.dp))
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.SpaceBetween,
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//                Row(verticalAlignment = Alignment.CenterVertically) {
-//                    Icon(
-//                        Icons.Default.LocationOn,
-//                        contentDescription = "Ícone de localização",
-//                        tint = Color(0xFF123B6D)
-//                    )
-//                    Spacer(Modifier.width(4.dp))
-//                    Text(
-//                        text = "Tempo de espera: $tempoEspera",
-//                        color = Color(0xFF123B6D)
-//                    )
-//                }
-//                Button(
-//                    onClick = { /* ação de saber mais */ },
-//                    shape = RoundedCornerShape(20.dp),
-//                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF298BE6))
-//                ) {
-//                    Text("Saber mais", color = Color.White)
-//                }
-//            }
-//        }
-//    }
-//
-//@Preview
-//@Composable
-//private fun CartaoUnidadePreview(){
-//    Tcc_PasTheme {
-//        CartaoUnidade("senai","20")
-//    }
-//}
-//
-//
-//    @Composable
-//    fun BarraDeNavegacaoMapa(navController: NavHostController?) {
-//
-//        NavigationBar(
-//            containerColor = Color(0xFF298BE6)
-//        ) {
-//            NavigationBarItem(
-//                selected = false,
-//                onClick = { navController?.navigate("Home") },
-//                icon = {
-//                    Icon(
-//                        imageVector = Icons.Default.Home,
-//                        contentDescription = "Home",
-//                        tint = MaterialTheme.colorScheme.onPrimary
-//                    )
-//                },
-//                label = { Text("Início", color = MaterialTheme.colorScheme.onPrimary) }
-//            )
-//            NavigationBarItem(
-//                selected = false,
-//                onClick = { navController?.navigate("mapa") },
-//                icon = {
-//                    Icon(
-//                        imageVector = Icons.Default.LocationOn,
-//                        contentDescription = "Mapa",
-//                        tint = MaterialTheme.colorScheme.onPrimary
-//                    )
-//                },
-//                label = { Text("Mapa", color = MaterialTheme.colorScheme.onPrimary) }
-//            )
-//            NavigationBarItem(
-//                selected = false,
-//                onClick = { navController?.navigate("perfil") },
-//                icon = {
-//                    Icon(
-//                        imageVector = Icons.Default.Person,
-//                        contentDescription = "Perfil",
-//                        tint = MaterialTheme.colorScheme.onPrimary
-//                    )
-//                },
-//                label = { Text("Perfil", color = MaterialTheme.colorScheme.onPrimary) }
-//            )
-//        }
-//    }
-//
-//@Preview
-//@Composable
-//private fun BarraDeNavegacaoMapaPreview(){
-//    Tcc_PasTheme {
-//        BarraDeNavegacaoMapa(null)
-//    }
-//}
 
 
 
