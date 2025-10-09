@@ -227,6 +227,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
             .padding(top = 18.dp)
     ) {
 
+        // Barra de pesquisa
         Box(
             modifier = Modifier
                 .fillMaxWidth()

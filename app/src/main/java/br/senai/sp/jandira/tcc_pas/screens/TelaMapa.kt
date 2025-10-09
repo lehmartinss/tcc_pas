@@ -51,9 +51,11 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -76,78 +78,70 @@ fun HomeMapa(navController: NavHostController) {
 @Composable
 fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
 
+    val densidadeTela = LocalDensity.current
+    var alturaBarraNav by remember { mutableStateOf(0.dp) }
+    val alturaTela = LocalConfiguration.current.screenHeightDp.dp
 
-    val density = LocalDensity.current
-    var navBarHeight by remember { mutableStateOf(0.dp) }
+    // peek dinâmico: esse "card" que aparece no meio da tela, criamos essas variaveis e if para poder deixar ele
+    // dinamico e "estatico" como queremos, aparece para o usuario no meio da tela e ele pode subir (trava la em cima)
+    // ou descer para poder visualizar o mapa
 
-    val screenH = LocalConfiguration.current.screenHeightDp.dp
+    var alturaPeek by remember { mutableStateOf(alturaTela * 0.5f) }
+    var travarAposPrimeiraOcultacao by remember { mutableStateOf(true) }
 
-    // peek dinâmico: começa no meio, depois vai para a altura da nav
-    var peek by remember { mutableStateOf(screenH * 0.5f) }
-    var lockToNavAfterFirstHide by remember { mutableStateOf(true) }
+    key(alturaPeek) {
 
-    // vamos recriar o scaffold quando o peek mudar (ancoras novas)
-    key(peek) {
-
-        val sheetState = rememberStandardBottomSheetState(
-            initialValue = SheetValue.PartiallyExpanded, // abre “no meio”
+        val estadoSheet = rememberStandardBottomSheetState(
+            initialValue = SheetValue.PartiallyExpanded,
             skipHiddenState = false
         )
-        val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
-        val scope = rememberCoroutineScope()
-
-        // abre no meio logo que monta (somente quando peek = 50%)
+        val estadoScaffold = rememberBottomSheetScaffoldState(bottomSheetState = estadoSheet)
+        val escopo = rememberCoroutineScope()
+        
         LaunchedEffect(Unit) {
-            if (peek >= screenH * 0.5f - 1.dp && peek <= screenH * 0.5f + 1.dp) {
-                sheetState.partialExpand()
+            if (alturaPeek >= alturaTela * 0.5f - 1.dp && alturaPeek <= alturaTela * 0.5f + 1.dp) {
+                estadoSheet.partialExpand()
             }
         }
 
-        // quando usuário esconder e já sabemos a altura da nav,
-        // mudamos o peek para nav e reabrimos em parcial
-        LaunchedEffect(navBarHeight, lockToNavAfterFirstHide) {
-            if (navBarHeight > 0.dp && lockToNavAfterFirstHide) {
-                snapshotFlow { sheetState.currentValue }.collect { v ->
-                    if (v == SheetValue.Hidden) {
-                        lockToNavAfterFirstHide = false
-                        // troca o peek (isso recria o scaffold por causa do key)
-                        peek = navBarHeight
+        LaunchedEffect(alturaBarraNav, travarAposPrimeiraOcultacao) {
+            if (alturaBarraNav > 0.dp && travarAposPrimeiraOcultacao) {
+                snapshotFlow { estadoSheet.currentValue }.collect { valor ->
+                    if (valor == SheetValue.Hidden) {
+                        travarAposPrimeiraOcultacao = false
+                        alturaPeek = alturaBarraNav
                     }
                 }
             }
         }
 
-        // toda vez que o peek for mudado para a altura da nav, reabre em parcial
-        LaunchedEffect(peek) {
-            if (peek == navBarHeight && navBarHeight > 0.dp) {
-                sheetState.partialExpand()
+        LaunchedEffect(alturaPeek) {
+            if (alturaPeek == alturaBarraNav && alturaBarraNav > 0.dp) {
+                estadoSheet.partialExpand()
             }
         }
 
-        // esconder barras quando expandido (mude para false se quiser sempre visíveis)
-        val hideWhenExpanded = true
-        val hideChrome by remember {
-            derivedStateOf { hideWhenExpanded && sheetState.currentValue == SheetValue.Expanded }
+        val esconderQuandoExpandido = true
+        val esconderChrome by remember {
+            derivedStateOf { esconderQuandoExpandido && estadoSheet.currentValue == SheetValue.Expanded }
         }
 
         Box(Modifier.fillMaxSize()) {
-
-            // (1) Mapa + Sheet (embaixo)
             BottomSheetScaffold(
                 modifier = Modifier
                     .matchParentSize()
                     .zIndex(1f),
-                scaffoldState = scaffoldState,
-                sheetPeekHeight = peek,                       // <- PEEK dinâmico (com key)
+                scaffoldState = estadoScaffold,
+                sheetPeekHeight = alturaPeek,
                 sheetSwipeEnabled = true,
                 sheetDragHandle = { BottomSheetDefaults.DragHandle() },
-                sheetContainerColor = Color.White,
+                sheetContainerColor = Color(0xFFEAF2FB),
                 sheetContent = {
-                    // garante que possa expandir até o topo
+
                     Column(
                         Modifier
                             .fillMaxWidth()
-                            .heightIn(min = screenH)
+                            .heightIn(min = alturaTela)
                             .padding(horizontal = 16.dp, vertical = 16.dp)
                     ) {
                         if (unidades.isNotEmpty()) {
@@ -164,24 +158,23 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                     }
                 },
                 containerColor = Color.Transparent
-            ) { innerPadding ->
-                // MAPA (fundo)
+            ) { paddingInterno ->
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
+                        .padding(paddingInterno)
                         .background(Color(0xFF93979F))
                 )
             }
 
-            // (2) Search bar sobre o sheet
             AnimatedVisibility(
-                visible = !hideChrome,
+                visible = !esconderChrome,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 8.dp, start = 10.dp, end = 10.dp)
                     .zIndex(2f)
             ) {
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -191,14 +184,13 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                 }
             }
 
-            // (3) Bottom nav por cima de tudo (mede altura real p/ encaixe)
             AnimatedVisibility(
-                visible = !hideChrome,
+                visible = !esconderChrome,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .zIndex(3f)
-                    .onSizeChanged { size ->
-                        navBarHeight = with(density) { size.height.toDp() }
+                    .onSizeChanged { tamanho ->
+                        alturaBarraNav = with(densidadeTela) { tamanho.height.toDp() }
                     }
             ) {
                 BarraDeNavegacaoCampanha(navController)
@@ -207,29 +199,178 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
     }
 }
 
+//
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
+//
+//
+//    val density = LocalDensity.current
+//    var navBarHeight by remember { mutableStateOf(0.dp) }
+//
+//    val screenH = LocalConfiguration.current.screenHeightDp.dp
+//
+//    // peek dinâmico: começa no meio, depois vai para a altura da nav
+//    var peek by remember { mutableStateOf(screenH * 0.5f) }
+//    var lockToNavAfterFirstHide by remember { mutableStateOf(true) }
+//
+//    // vamos recriar o scaffold quando o peek mudar (ancoras novas)
+//    key(peek) {
+//
+//        val sheetState = rememberStandardBottomSheetState(
+//            initialValue = SheetValue.PartiallyExpanded, // abre “no meio”
+//            skipHiddenState = false
+//        )
+//        val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
+//        val scope = rememberCoroutineScope()
+//
+//        // abre no meio logo que monta (somente quando peek = 50%)
+//        LaunchedEffect(Unit) {
+//            if (peek >= screenH * 0.5f - 1.dp && peek <= screenH * 0.5f + 1.dp) {
+//                sheetState.partialExpand()
+//            }
+//        }
+//
+//        // quando usuário esconder e já sabemos a altura da nav,
+//        // mudamos o peek para nav e reabrimos em parcial
+//        LaunchedEffect(navBarHeight, lockToNavAfterFirstHide) {
+//            if (navBarHeight > 0.dp && lockToNavAfterFirstHide) {
+//                snapshotFlow { sheetState.currentValue }.collect { v ->
+//                    if (v == SheetValue.Hidden) {
+//                        lockToNavAfterFirstHide = false
+//                        // troca o peek (isso recria o scaffold por causa do key)
+//                        peek = navBarHeight
+//                    }
+//                }
+//            }
+//        }
+//
+//        // toda vez que o peek for mudado para a altura da nav, reabre em parcial
+//        LaunchedEffect(peek) {
+//            if (peek == navBarHeight && navBarHeight > 0.dp) {
+//                sheetState.partialExpand()
+//            }
+//        }
+//
+//        // esconder barras quando expandido (mude para false se quiser sempre visíveis)
+//        val hideWhenExpanded = true
+//        val hideChrome by remember {
+//            derivedStateOf { hideWhenExpanded && sheetState.currentValue == SheetValue.Expanded }
+//        }
+//
+//        Box(Modifier.fillMaxSize()) {
+//
+//            BottomSheetScaffold(
+//                modifier = Modifier
+//                    .matchParentSize()
+//                    .zIndex(1f),
+//                scaffoldState = scaffoldState,
+//                sheetPeekHeight = peek,
+//                sheetSwipeEnabled = true,
+//                sheetDragHandle = { BottomSheetDefaults.DragHandle() },
+//                sheetContainerColor = Color.White,
+//                sheetContent = {
+//
+//                    Column(
+//                        Modifier
+//                            .fillMaxWidth()
+//                            .heightIn(min = screenH)
+//                            .padding(horizontal = 16.dp, vertical = 16.dp)
+//                    ) {
+//                        if (unidades.isNotEmpty()) {
+//                            unidades.forEach { unidade ->
+//                                CartaoUnidade(
+//                                    nomeUnidade = unidade.nome ?: "Sem nome"
+//                                )
+//                                Spacer(Modifier.height(8.dp))
+//                            }
+//                        } else {
+//                            Text("Nenhuma unidade encontrada", color = Color.Gray)
+//                        }
+//
+//                    }
+//                },
+//                containerColor = Color.Transparent
+//            ) { innerPadding ->
+//                Box(
+//                    Modifier
+//                        .fillMaxSize()
+//                        .padding(innerPadding)
+//                        .background(Color(0xFF93979F))
+//                )
+//            }
+//
+//            AnimatedVisibility(
+//                visible = !hideChrome,
+//                modifier = Modifier
+//                    .align(Alignment.TopCenter)
+//                    .padding(top = 8.dp, start = 10.dp, end = 10.dp)
+//                    .zIndex(2f)
+//            ) {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .zIndex(10f)
+//                ) {
+//                    BarraDePesquisaComFiltros(navController = navController)
+//                }
+//            }
+//
+//            AnimatedVisibility(
+//                visible = !hideChrome,
+//                modifier = Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .zIndex(3f)
+//                    .onSizeChanged { size ->
+//                        navBarHeight = with(density) { size.height.toDp() }
+//                    }
+//            ) {
+//                BarraDeNavegacaoCampanha(navController)
+//            }
+//        }
+//    }
+//}
 
 
-// ------- SUA NAV BAR (inalterada, apenas referenciada acima) -------
 @Composable
 fun BarraDeNavegacaoMapa(navController: NavHostController?) {
     NavigationBar(containerColor = Color(0xFF298BE6)) {
         NavigationBarItem(
             selected = false,
             onClick = { navController?.navigate("Home") },
-            icon = { Icon(Icons.Default.Home, contentDescription = "Home", tint = MaterialTheme.colorScheme.onPrimary) },
-            label = { Text("Início", color = MaterialTheme.colorScheme.onPrimary) }
+            icon = { Icon(Icons.Default.Home,
+                contentDescription = "Home",
+                tint = MaterialTheme.colorScheme.onPrimary)
+                   },
+            label = { Text("Início",
+                color = MaterialTheme.colorScheme.onPrimary)
+            }
         )
         NavigationBarItem(
             selected = false,
             onClick = { navController?.navigate("mapa") },
-            icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa", tint = MaterialTheme.colorScheme.onPrimary) },
-            label = { Text("Mapa", color = MaterialTheme.colorScheme.onPrimary) }
+            icon = {
+                Icon(Icons.Default.LocationOn,
+                    contentDescription = "Mapa",
+                    tint = MaterialTheme.colorScheme.onPrimary)
+                   },
+            label = {
+                Text("Mapa",
+                    color = MaterialTheme.colorScheme.onPrimary)
+            }
         )
         NavigationBarItem(
             selected = false,
             onClick = { navController?.navigate("perfil") },
-            icon = { Icon(Icons.Default.Person, contentDescription = "Perfil", tint = MaterialTheme.colorScheme.onPrimary) },
-            label = { Text("Perfil", color = MaterialTheme.colorScheme.onPrimary) }
+            icon = {
+                Icon(Icons.Default.Person,
+                contentDescription = "Perfil",
+                tint = MaterialTheme.colorScheme.onPrimary)
+            },
+            label = {
+                Text("Perfil",
+                color = MaterialTheme.colorScheme.onPrimary)
+            }
         )
     }
 }
@@ -241,13 +382,13 @@ fun CartaoUnidade(nomeUnidade: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFEAF2FB), RoundedCornerShape(16.dp))
+            .background(Color(0xFFC8D4E0), RoundedCornerShape(16.dp))
             .padding(16.dp)
         ) {
             Text(
                 text = nomeUnidade,
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF123B6D)
+                color = Color(0xFF298BE6)
             )
             Spacer(Modifier.height(8.dp))
             Row(
@@ -259,22 +400,27 @@ fun CartaoUnidade(nomeUnidade: String) {
                     Icon(
                         Icons.Default.LocationOn,
                         contentDescription = "Ícone de localização",
-                        tint = Color(0xFF123B6D)
+                        tint = Color(0xFF298BE6)
                     )
                     Spacer(Modifier.width(4.dp))
                 }
                 Button(
-                    onClick = { /* ação de saber mais */ },
+                    onClick = { },
                     shape = RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF298BE6))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E5FA3))
                 ) {
-                    Text("Saber mais", color = Color.White)
+                    Text("Saber mais",
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
+
             }
         }
     }
 
-// ------- PREVIEWS -------
+
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun HomeMapaPreview() {
@@ -291,7 +437,13 @@ private fun BarraDeNavegacaoMapaPreview() {
     }
 }
 
-
+@Preview
+@Composable
+private fun CartaoUnidadePreview() {
+    Tcc_PasTheme {
+        CartaoUnidade(nomeUnidade = "hospital")
+    }
+}
 
 
 

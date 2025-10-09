@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitFactoryCampanha {
 
-    private val BASE_URL = "https://api-fake-de-campanhas-com-json-server-1.onrender.com/"
+    private val BASE_URL = "https://api-fake-de-campanhas-com-json-server-4.onrender.com/"
 
     private  val retrofitFactory =
         Retrofit

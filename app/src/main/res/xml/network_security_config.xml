@@ -5,9 +5,8 @@
         <domain includeSubdomains="true">api-fake-de-usuarios-com-json-server-3.onrender.com</domain>
     </domain-config>
 
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">api-fake-de-campanhas-com-json-server-4.onrender.com/</domain>
+    </domain-config>
 
-    <!-- PERMITE HTTP PARA O SERVIDOR LOCAL -->
-<domain-config cleartextTrafficPermitted="true">
-<domain includeSubdomains="true">10.107.134.34</domain>
-</domain-config>
     </network-security-config>
