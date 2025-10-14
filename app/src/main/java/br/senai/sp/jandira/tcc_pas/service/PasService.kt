@@ -13,6 +13,7 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface PasService {
 
@@ -37,6 +38,12 @@ interface PasService {
 
     @POST("v1/pas/unidades/filtrar")
     suspend fun filtrarUnidades(@Body filtros: Filtros): Response<FiltrarUnidadesResponse>
+
+
+    @GET("v1/pas/pesquisa/{nome}")
+    suspend fun pesquisarUnidade(
+            @Path("nome") nome: String): Response<FiltrarUnidadesResponse>
+
 
 
 }
