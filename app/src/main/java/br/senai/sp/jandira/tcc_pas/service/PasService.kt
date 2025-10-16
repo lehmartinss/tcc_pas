@@ -55,6 +55,16 @@ interface PasService {
         @Query("addressdetails") addressDetails: Int = 1
     ): Response<List<NominatimAddressItem>>
 
+    @GET("reverse")
+    suspend fun buscarPorCoord(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+
+        // já pré-definido
+        @Query("format") format: String = "json",
+        @Query("addressdetails") addressDetails: Int = 1
+    ): Response<NominatimAddressItem>
+
 //    https://nominatim.openstreetmap.org/reverse?lat=-23.52864&lon=-46.89797&format=json&addressdetails=1
 }
 

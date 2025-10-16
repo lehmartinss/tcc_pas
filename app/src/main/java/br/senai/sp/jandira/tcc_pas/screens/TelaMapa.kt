@@ -30,6 +30,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -60,14 +61,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryOSM
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.launch
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
 
 
 @Composable
@@ -84,7 +92,17 @@ fun HomeMapa(navController: NavHostController) {
 @Composable
 fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
 
+    val api = RetrofitFactoryOSM().getOSMService()
+
     val context = LocalContext.current
+
+    // osmdroid
+    var latitude by remember { mutableStateOf(0.0) }
+    var longitude by remember { mutableStateOf(0.0) }
+
+    var mapView: MapView? by remember { mutableStateOf(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     // 🛰️ FUSED → cria o cliente de localização
     val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
@@ -108,14 +126,26 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
         }
     }
 
-    // Depois do LaunchedEffect(Unit), dentro do mesmo Composable:
     LaunchedEffect(locationPermissionGranted.value) {
         if (locationPermissionGranted.value) {
             try {
                 val fusedClient = LocationServices.getFusedLocationProviderClient(context)
                 fusedClient.lastLocation.addOnSuccessListener { loc ->
                     if (loc != null) {
-                        Log.d("LOCALIZAÇÃO", "Lat: ${loc.latitude}, Lon: ${loc.longitude}")
+                        scope.launch {
+                            isLoading = true
+
+                            val response = api.buscarPorCoord(loc.latitude, loc.longitude)
+                            val item = response.body()
+                            if (item != null) {
+                                val geoPoint = GeoPoint(item.lat.toDouble(), item.lon.toDouble())
+                                latitude = geoPoint.latitude
+                                longitude = geoPoint.longitude
+                                mapView?.controller?.setCenter(geoPoint)
+                            }
+
+                            isLoading = false
+                        }
                     } else {
                         Log.d("LOCALIZAÇÃO", "Não foi possível obter localização (GPS desligado?)")
                     }
@@ -125,6 +155,7 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
             }
         }
     }
+
 
 
 
@@ -222,8 +253,26 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                     Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .background(Color(0xFF93979F))
-                )
+                        .background(Color(0xFF0035A2))
+                ){
+                    AndroidView(
+                        modifier = Modifier.fillMaxSize(),
+                        factory = { context ->
+                            MapView(context).apply {
+                                setTileSource(TileSourceFactory.MAPNIK)
+                                setMultiTouchControls(true)
+                                controller.setZoom(19.0)
+                                controller.setCenter(GeoPoint(latitude, longitude))
+                                mapView = this
+                            }
+                        }
+                    )
+
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+                }
+
             }
 
             // (2) Search bar sobre o sheet
