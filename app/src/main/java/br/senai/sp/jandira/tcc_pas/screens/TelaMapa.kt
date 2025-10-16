@@ -171,25 +171,22 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                         .fillMaxSize()
                         .padding(innerPadding)
                         .background(Color(0xFF93979F))
+
                 )
             }
 
-            // (2) Search bar sobre o sheet
             AnimatedVisibility(
                 visible = !hideChrome,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 8.dp, start = 10.dp, end = 10.dp)
+                    .fillMaxWidth()
                     .zIndex(2f)
+
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .zIndex(10f)
-                ) {
-                    BarraDePesquisaComFiltros(navController = navController)
-                }
+                BarraDePesquisaComFiltros(navController = navController)
             }
+
+
 
             // (3) Bottom nav por cima de tudo (mede altura real p/ encaixe)
             AnimatedVisibility(

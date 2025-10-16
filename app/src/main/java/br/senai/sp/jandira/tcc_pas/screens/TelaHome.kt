@@ -133,6 +133,7 @@ fun HomeScreen(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .zIndex(10f)
+
             ) {
                 BarraDePesquisaComFiltros(navController = navController)
             }
