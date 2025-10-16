@@ -77,7 +77,7 @@ import br.senai.sp.jandira.tcc_pas.model.EspecialidadeResponse
 import br.senai.sp.jandira.tcc_pas.model.Filtros
 import br.senai.sp.jandira.tcc_pas.model.Unidade
 import br.senai.sp.jandira.tcc_pas.model.UnidadeParaDisponibilidade
-import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
+//import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroDisponibilidade
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroEspecialidade
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroUnidade
@@ -92,23 +92,23 @@ import kotlinx.coroutines.launch
 fun HomeScreen(navController: NavHostController) {
 
     // Retrofit da API de campanhas
-    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
+//    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
     var campanhas by remember { mutableStateOf<List<CampanhaResponse>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
 
-    // Carrega campanhas
-    LaunchedEffect(Unit) {
-        try {
-            val response = withContext(Dispatchers.IO) { apiCampanha.listarCampanhas() }
-            if (response.isSuccessful) {
-                response.body()?.let { campanhas = it }
-            }
-        } catch (e: Exception) {
-            Log.e("TelaHome", "Erro ao buscar campanhas: ${e.message}")
-        } finally {
-            carregando = false
-        }
-    }
+//    // Carrega campanhas
+//    LaunchedEffect(Unit) {
+//        try {
+//            val response = withContext(Dispatchers.IO) { apiCampanha.listarCampanhas() }
+//            if (response.isSuccessful) {
+//                response.body()?.let { campanhas = it }
+//            }
+//        } catch (e: Exception) {
+//            Log.e("TelaHome", "Erro ao buscar campanhas: ${e.message}")
+//        } finally {
+//            carregando = false
+//        }
+//    }
 
     Scaffold(
         bottomBar = { BarraDeNavegacao(navController = navController) }
@@ -206,68 +206,68 @@ fun HomeScreen(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    // Lista de campanhas
-                    if (carregando) {
-                        Text(
-                            "Carregando campanhas...",
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                    } else {
-                        val lazyListState = rememberLazyListState()
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            flingBehavior = rememberSnapFlingBehavior(lazyListState),
-                            state = lazyListState
-                        ) {
-                            items(campanhas) { campanha ->
-                                Card(
-                                    modifier = Modifier
-                                        .fillParentMaxWidth()
-                                        .height(180.dp)
-                                        .padding(horizontal = 16.dp)
-                                        .clickable {
-                                            navController.navigate("campanha/${campanha.id}")
-                                        },
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    AsyncImage(
-                                        model = campanha.foto,
-                                        contentDescription = "Imagem da campanha",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                            }
-                        }
+//                    // Lista de campanhas
+//                    if (carregando) {
+//                        Text(
+//                            "Carregando campanhas...",
+//                            modifier = Modifier.align(Alignment.CenterHorizontally)
+//                        )
+//                    } else {
+//                        val lazyListState = rememberLazyListState()
+//                        LazyRow(
+//                            modifier = Modifier.fillMaxWidth(),
+//                            flingBehavior = rememberSnapFlingBehavior(lazyListState),
+//                            state = lazyListState
+//                        ) {
+//                            items(campanhas) { campanha ->
+//                                Card(
+//                                    modifier = Modifier
+//                                        .fillParentMaxWidth()
+//                                        .height(180.dp)
+//                                        .padding(horizontal = 16.dp)
+//                                        .clickable {
+//                                            navController.navigate("campanha/${campanha.id}")
+//                                        },
+//                                    shape = RoundedCornerShape(12.dp)
+//                                ) {
+//                                    AsyncImage(
+//                                        model = campanha.foto,
+//                                        contentDescription = "Imagem da campanha",
+//                                        contentScale = ContentScale.Crop,
+//                                        modifier = Modifier.fillMaxSize()
+//                                    )
+//                                }
+//                            }
+//                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
-
-                        // Indicador de bolinhas
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            campanhas.forEachIndexed { index, _ ->
-                                val isSelected =
-                                    lazyListState.firstVisibleItemIndex == index
-                                Box(
-                                    modifier = Modifier
-                                        .size(if (isSelected) 12.dp else 8.dp)
-                                        .padding(2.dp)
-                                        .background(
-                                            if (isSelected) Color(0xFF298BE6) else Color.LightGray,
-                                            shape = CircleShape
-                                        )
-                                )
-                            }
-                        }
+//
+//                        // Indicador de bolinhas
+//                        Row(
+//                            horizontalArrangement = Arrangement.Center,
+//                            verticalAlignment = Alignment.CenterVertically,
+//                            modifier = Modifier.fillMaxWidth()
+//                        ) {
+//                            campanhas.forEachIndexed { index, _ ->
+//                                val isSelected =
+//                                    lazyListState.firstVisibleItemIndex == index
+//                                Box(
+//                                    modifier = Modifier
+//                                        .size(if (isSelected) 12.dp else 8.dp)
+//                                        .padding(2.dp)
+//                                        .background(
+//                                            if (isSelected) Color(0xFF298BE6) else Color.LightGray,
+//                                            shape = CircleShape
+//                                        )
+//                                )
+//                            }
+//                        }
                     }
                 }
             }
         }
     }
-}
+
 
 @Composable
 fun BarraDeNavegacao(navController: NavHostController?) {

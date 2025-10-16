@@ -53,7 +53,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.model.CampanhaResponse
-import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
+//import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
@@ -206,19 +206,19 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
     var campanha by remember { mutableStateOf<CampanhaResponse?>(null) }
     var carregando by remember { mutableStateOf(true) }
 
-    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
-
-    // Buscar dados da campanha
-    LaunchedEffect(id) {
-        try {
-            val response = withContext(Dispatchers.IO) { apiCampanha.getCampanha(id) }
-            if (response.isSuccessful) {
-                campanha = response.body()
-            }
-        } finally {
-            carregando = false
-        }
-    }
+//    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
+//
+//    // Buscar dados da campanha
+//    LaunchedEffect(id) {
+//        try {
+//            val response = withContext(Dispatchers.IO) { apiCampanha.getCampanha(id) }
+//            if (response.isSuccessful) {
+//                campanha = response.body()
+//            }
+//        } finally {
+//            carregando = false
+//        }
+//    }
 
     Box(
         modifier = Modifier

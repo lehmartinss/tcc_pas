@@ -1,5 +1,7 @@
 package br.senai.sp.jandira.tcc_pas.model
 
+import android.R
+
 data class FiltrarUnidadesResponse(
     val status: Boolean,
     val status_code: Int,
@@ -14,8 +16,6 @@ data class Filtros(
     val nomePesquisa: String? = null
 )
 
-
-
 data class UnidadeDeSaude(
     val id: Int,
     val nome: String,
@@ -27,6 +27,15 @@ data class UnidadeDeSaude(
     val especialidades: EspecialidadesWrapper
 )
 
+data class UnidadeDeSaudeResponse(
+    val id: Int,
+    val nome: String,
+    val telefone: String,
+    val disponibilidade_24h: Int,
+    val foto: String?,
+    val local: LocalWrapper,
+    val tempo_espera_geral: String
+)
 data class LocalWrapper(
     val endereco: List<Endereco>
 )

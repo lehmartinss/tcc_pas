@@ -186,8 +186,6 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                 BarraDePesquisaComFiltros(navController = navController)
             }
 
-
-
             // (3) Bottom nav por cima de tudo (mede altura real p/ encaixe)
             AnimatedVisibility(
                 visible = !hideChrome,
