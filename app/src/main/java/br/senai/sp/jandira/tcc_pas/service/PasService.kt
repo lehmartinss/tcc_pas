@@ -14,6 +14,7 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface PasService {
 
@@ -41,6 +42,12 @@ interface PasService {
 
     @GET("v1/pas/pesquisa/{termo}")
     suspend fun pesquisar(@Path("termo") termo: String): Response<PesquisaResponse>
+
+    @GET("v1/pas/pesquisa/{nome}")
+    suspend fun pesquisarUnidade(
+            @Path("nome") nome: String): Response<FiltrarUnidadesResponse>
+
+
 
 }
 
