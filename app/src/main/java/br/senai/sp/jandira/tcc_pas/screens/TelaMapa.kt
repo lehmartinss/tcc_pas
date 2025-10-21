@@ -1,6 +1,7 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
 import android.Manifest
+import android.R.attr.onClick
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.util.Log
@@ -8,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +47,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -76,6 +79,7 @@ import kotlinx.coroutines.launch
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 
 
 @Composable
@@ -90,7 +94,9 @@ fun HomeMapa(navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
+fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = emptyList()) {
+
+    val unidadeGeoMap = remember { mutableStateMapOf<String, GeoPoint>() }
 
     val api = RetrofitFactoryOSM().getOSMService()
 
@@ -135,6 +141,7 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                         scope.launch {
                             isLoading = true
 
+                            // 🔹 Primeiro, carrega a localização do usuário
                             val response = api.buscarPorCoord(loc.latitude, loc.longitude)
                             val item = response.body()
                             if (item != null) {
@@ -144,10 +151,60 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                                 mapView?.controller?.setCenter(geoPoint)
                             }
 
+                            // 🔹 Depois, se houver unidades, mostra a PRIMEIRA no mapa
+                            if (unidades.isNotEmpty()) {
+
+                                var primeiraUnidadeCentralizada = false // pra centralizar só uma vez
+
+                                unidades.forEach { unidade ->
+
+                                    val endereco = unidade.local.endereco[0].cep
+
+                                    try {
+                                        val response = api.buscarPorCep(endereco)
+                                        val lista = response.body()
+
+                                        if (!lista.isNullOrEmpty()) {
+                                            val geo = lista.first()
+
+                                            val geoPoint = GeoPoint(geo.lat.toDouble(), geo.lon.toDouble())
+                                            val marker = Marker(mapView)
+
+                                            marker.position = geoPoint
+                                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                                            marker.title = unidade.nome
+
+                                            // Adiciona o marcador ao mapa (sem recriar)
+                                            mapView?.overlays?.add(marker)
+
+                                            // **preenche o cache**
+                                            unidadeGeoMap[unidade.nome] = geoPoint
+
+                                            // Centraliza no primeiro marcador válido
+                                            if (!primeiraUnidadeCentralizada) {
+                                                mapView?.controller?.setZoom(18.0)
+                                                mapView?.controller?.setCenter(geoPoint)
+                                                primeiraUnidadeCentralizada = true
+                                            }
+
+                                            Log.i("MAPA", "Marcador adicionado: ${unidade.nome} -> ${geo.display_name}")
+
+                                        } else {
+                                            Log.w("MAPA", "Nenhum resultado encontrado para o CEP: $endereco")
+                                        }
+
+                                    } catch (e: Exception) {
+                                        Log.e("MAPA", "Erro ao buscar CEP $endereco", e)
+                                    }
+                                }
+
+                                // Atualiza o mapa depois de adicionar tudo
+                                mapView?.invalidate()
+                            }
+
+
                             isLoading = false
                         }
-                    } else {
-                        Log.d("LOCALIZAÇÃO", "Não foi possível obter localização (GPS desligado?)")
                     }
                 }
             } catch (e: SecurityException) {
@@ -236,7 +293,9 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                         if (unidades.isNotEmpty()) {
                             unidades.forEach { unidade ->
                                 CartaoUnidade(
-                                    nomeUnidade = unidade.nome ?: "Sem nome"
+                                    nomeUnidade = unidade.nome,
+                                    mapView = mapView,
+                                    unidadeGeoMap = unidadeGeoMap
                                 )
                                 Spacer(Modifier.height(8.dp))
                             }
@@ -338,12 +397,21 @@ fun BarraDeNavegacaoMapa(navController: NavHostController?) {
 
 
 @Composable
-fun CartaoUnidade(nomeUnidade: String) {
+fun CartaoUnidade( nomeUnidade: String,
+                   mapView: MapView?,
+                   unidadeGeoMap: Map<String, GeoPoint>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFFEAF2FB), RoundedCornerShape(16.dp))
             .padding(16.dp)
+            .clickable {
+                // centraliza a unidade no mapa ao clicar
+                unidadeGeoMap[nomeUnidade]?.let { geo ->
+                    mapView?.controller?.animateTo(geo)
+                    mapView?.controller?.setZoom(18.0)
+                }
+            }
         ) {
             Text(
                 text = nomeUnidade,
@@ -383,15 +451,6 @@ private fun HomeMapaPreview() {
         HomeMapa(rememberNavController())
     }
 }
-
-@Preview
-@Composable
-private fun BarraDeNavegacaoMapaPreview() {
-    Tcc_PasTheme {
-        BarraDeNavegacaoMapa(null)
-    }
-}
-
 
 
 

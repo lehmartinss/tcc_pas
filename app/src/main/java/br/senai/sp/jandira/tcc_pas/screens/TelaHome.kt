@@ -137,6 +137,47 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
 
+    // 🚀 Quando a permissão de localização for concedida, pega a localização e centraliza o mapa
+    LaunchedEffect(locationPermissionGranted.value) {
+        if (locationPermissionGranted.value) {
+            try {
+                fusedClient.lastLocation.addOnSuccessListener { loc ->
+                    if (loc != null) {
+                        latitude = loc.latitude
+                        longitude = loc.longitude
+
+                        Log.i("Localização", "Lat: $latitude | Lon: $longitude")
+
+                        // Atualiza o mapa se já tiver sido criado
+                        mapView?.controller?.apply {
+                            setZoom(18.0)
+                            setCenter(GeoPoint(latitude, longitude))
+                        }
+
+                        val marker = org.osmdroid.views.overlay.Marker(mapView)
+                        marker.position = GeoPoint(latitude, longitude)
+                        marker.title = "Você está aqui"
+                        marker.setAnchor(
+                            org.osmdroid.views.overlay.Marker.ANCHOR_CENTER,
+                            org.osmdroid.views.overlay.Marker.ANCHOR_BOTTOM
+                        )
+
+                        // Limpa marcadores antigos e adiciona o novo
+                        mapView?.overlays?.clear()
+                        mapView?.overlays?.add(marker)
+                        mapView?.invalidate()
+
+                    } else {
+                        Log.w("Localização", "Localização nula — GPS desligado ou sem sinal")
+                    }
+                }
+            } catch (e: SecurityException) {
+                Log.e("Localização", "Erro de permissão: ${e.message}")
+            }
+        }
+    }
+
+
     // Retrofit da API de campanhas
     val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
     var campanhas by remember { mutableStateOf<List<CampanhaResponse>>(emptyList()) }

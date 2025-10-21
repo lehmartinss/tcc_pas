@@ -23,6 +23,7 @@ fun AppNavigation() {
     NavHost(navController = navController, startDestination = "home") {
         composable("login") { TelaLogin(navController) }
         composable("home") { HomeScreen(navController) }
+        composable("mapa") { TelaMapa(navController) }
         composable(
             "campanha/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType })
