@@ -53,7 +53,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.model.CampanhaResponse
-//import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
@@ -131,7 +131,7 @@ private fun BarraDeNavegacaoCampanhaPreview(){
     }
 }
 
-
+// funcao para os "cards"
 @Composable
 fun ExpandableSection(
     title: String,
@@ -181,7 +181,7 @@ fun ExpandableSection(
 }
 
 
-// FUNCAO PARA PERSONALIZAR TEXTO
+// funcao para personalizar texto
 @Composable
 fun InfoText(label: String, value: String) {
     Text(
@@ -206,19 +206,19 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
     var campanha by remember { mutableStateOf<CampanhaResponse?>(null) }
     var carregando by remember { mutableStateOf(true) }
 
-//    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
-//
-//    // Buscar dados da campanha
-//    LaunchedEffect(id) {
-//        try {
-//            val response = withContext(Dispatchers.IO) { apiCampanha.getCampanha(id) }
-//            if (response.isSuccessful) {
-//                campanha = response.body()
-//            }
-//        } finally {
-//            carregando = false
-//        }
-//    }
+    val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
+
+    // busca dados da campanha
+    LaunchedEffect(id) {
+        try {
+            val response = withContext(Dispatchers.IO) { apiCampanha.getCampanha(id) }
+            if (response.isSuccessful) {
+                campanha = response.body()
+            }
+        } finally {
+            carregando = false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -227,7 +227,6 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
             .padding(top = 18.dp)
     ) {
 
-        // Barra de pesquisa
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -242,7 +241,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
                 .fillMaxSize()
                 .padding(horizontal = 20.dp, vertical = 70.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(bottom = 80.dp) // garante espaço para o último botão
+            contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             item {
                 Text(
@@ -320,10 +319,9 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
                     content = {
                         Column(modifier = Modifier.padding(start = 8.dp)) {
                             campanha?.cidades?.forEach { cidadeItem ->
-                                // Nome da cidade (preto)
+
                                 InfoText("Cidade", cidadeItem.cidade)
 
-                                // Unidades (azul)
                                 cidadeItem.unidades_disponiveis.forEach { unidade ->
                                     Text(
                                         text = "- $unidade",

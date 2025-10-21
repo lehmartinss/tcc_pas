@@ -100,6 +100,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.collections.orEmpty
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraDePesquisaComFiltros(navController: NavHostController) {
@@ -133,12 +134,12 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
     var sugestoes by remember { mutableStateOf<List<String>>(emptyList()) }
     var todasSugestoes by remember { mutableStateOf<List<String>>(emptyList()) }
 
-    // 🔹 Buscar sugestões conforme digita
+    // busca sugestões conforme o usuario digita
     LaunchedEffect(textoPesquisa) {
         if (textoPesquisa.isNotBlank()) {
             if (todasSugestoes.isEmpty()) {
                 try {
-                    val response = withContext(Dispatchers.IO) { pesquisaService.pesquisarUnidade("") }
+                    val response = withContext(Dispatchers.IO) { pesquisaService.pesquisar(textoPesquisa) }
                     if (response.isSuccessful && response.body() != null) {
                         todasSugestoes = response.body()!!.unidadesDeSaude.map { it.nome }
                     }
@@ -150,7 +151,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
         }
     }
 
-    // 🔹 Buscar filtros ao abrir o menu
+    // busca filtros ao abrir o menu
     LaunchedEffect(expandirMenu) {
         if (expandirMenu) {
             if (especialidades.isEmpty()) {
@@ -168,7 +169,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
         }
     }
 
-    // Box principal para capturar cliques fora da barra
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -181,7 +182,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                 focusManager.clearFocus()
             }
     ) {
-        // 🔵 Barra azul de pesquisa
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -198,7 +199,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                     .padding(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Ícone de seta
+
                 Icon(
                     imageVector = if (expandirMenu) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = "Abrir/Fechar filtros",
@@ -211,7 +212,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                         }
                 )
 
-                // Campo de pesquisa + filtros selecionados
+
                 Row(
                     modifier = Modifier
                         .weight(1f)
@@ -300,68 +301,79 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                 }
 
                 // Ícone de pesquisa
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Pesquisar",
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable {
-                            if (textoPesquisa.isNotBlank()) {
-                                scope.launch(Dispatchers.IO) {
-                                    try {
-                                        val response = pesquisaService.pesquisarUnidade(textoPesquisa)
-                                        if (response.isSuccessful && response.body() != null) {
-                                            val todasUnidades = response.body()!!.unidadesDeSaude
-                                            val unidadesFiltradas = todasUnidades.filter {
-                                                it.nome.contains(textoPesquisa, ignoreCase = true)
-                                            }
-                                            withContext(Dispatchers.Main) {
-                                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                                    "unidadesFiltradas", unidadesFiltradas
-                                                )
-                                                navController.navigate("mapafiltrado") { launchSingleTop = true }
-                                            }
-                                        }
-                                    } catch (_: Exception) {}
-                                }
-                            }
-                        }
-                )
+                   Icon(
+                       imageVector = Icons.Default.Search,
+                       contentDescription = "Pesquisar",
+                       tint = Color.White,
+                       modifier = Modifier
+                           .size(24.dp)
+                           .clickable {
+                               if (textoPesquisa.isNotBlank()) {
+                                   scope.launch(Dispatchers.IO) {
+                                       try {
+                                           val response = pesquisaService.pesquisar(
+                                               textoPesquisa
+                                           )
+                                           if (response.isSuccessful && response.body() != null) {
+                                               val todasUnidades =
+                                                   response.body()!!.unidadesDeSaude
+                                               val unidadesFiltradas = todasUnidades.filter {
+                                                   it.nome.contains(
+                                                       textoPesquisa,
+                                                       ignoreCase = true
+                                                   )
+                                               }
+
+                                               withContext(Dispatchers.Main) {
+                                                   navController.navigate("mapafiltrado") {
+                                                       launchSingleTop = true
+                                                   }
+                                                   navController.getBackStackEntry("mapafiltrado")
+                                                       .savedStateHandle["unidadesFiltradas"] =
+                                                       unidadesFiltradas
+                                               }
+                                           }
+                                       } catch (e: Exception) {
+                                       }
+                                   }
+                               }
+                           }
+                   )
             }
         }
 
-        // 🔽 Menu de sugestões (autocomplete)
-        AnimatedVisibility(visible = textoPesquisa.isNotBlank() && sugestoes.isNotEmpty()) {
-            Box(
+        // menu de sugestões
+        AnimatedVisibility(
+            visible = textoPesquisa.isNotBlank() && sugestoes.isNotEmpty()
+        ) {
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
+                    .padding(horizontal = 7.dp)
                     .zIndex(12f)
-                    .background(Color.White, RoundedCornerShape(8.dp))
-                    .border(1.dp, Color.LightGray)
+                    .offset(y = 56.dp + 12.dp - 4.dp)
+                    .background(Color(0xFF7FBEF8), RoundedCornerShape(12.dp))
                     .padding(vertical = 4.dp)
             ) {
-                Column {
-                    sugestoes.forEach { nome ->
-                        Text(
-                            text = nome,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    textoPesquisa = nome
-                                    sugestoes = emptyList()
-                                    keyboardController?.hide()
-                                }
-                                .padding(12.dp),
-                            color = Color.Black
-                        )
-                    }
+                sugestoes.forEach { nome ->
+                    Text(
+                        text = nome,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                textoPesquisa = nome
+                                sugestoes = emptyList()
+                                keyboardController?.hide()
+                            }
+                            .padding(12.dp),
+                        color = Color.White
+                    )
                 }
             }
         }
 
-        // ⚙️ Menu de filtros
+        // menu de filtros
         AnimatedVisibility(visible = expandirMenu) {
             Box(
                 modifier = Modifier
@@ -457,573 +469,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
     }
 }
 
-
-
-
-//
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun BarraDePesquisaComFiltros(navController: NavHostController) {
-//    var expandirMenu by remember { mutableStateOf(false) }
-//    var textoPesquisa by remember { mutableStateOf("") }
-//    var campoFocado by remember { mutableStateOf(false) }
-//
-//    var especialidadeSelecionada by remember { mutableStateOf<String?>(null) }
-//    var unidadeSelecionada by remember { mutableStateOf<String?>(null) }
-//    var disponibilidadeSelecionada by remember { mutableStateOf<String?>(null) }
-//
-//    var especialidades by remember { mutableStateOf<List<Especialidade>>(emptyList()) }
-//    var unidades by remember { mutableStateOf<List<Unidade>>(emptyList()) }
-//
-//    val scope = rememberCoroutineScope()
-//    val filtroService = remember { RetrofitFactoryFiltroEspecialidade().getFiltroService() }
-//    val unidadeService = remember { RetrofitFactoryFiltroUnidade().getUnidadeService() }
-//    val apiFiltrar = remember { RetrofitFactoryFiltrar().getUnidadesService() }
-//    val pesquisaService = remember { RetrofitFactoryFiltrarPorPesquisa().getPesquisaService() }
-//    val keyboardController = LocalSoftwareKeyboardController.current
-//
-//    var sugestoes by remember { mutableStateOf<List<String>>(emptyList()) }
-//
-//    var todasSugestoes by remember { mutableStateOf<List<String>>(emptyList()) } // todas unidades da API
-//
-//
-//
-//// 🔹 Buscar sugestões conforme digita (autocomplete)
-//    LaunchedEffect(textoPesquisa) {
-//        if (textoPesquisa.isNotBlank()) {
-//            // 🔹 Busca na API apenas se ainda não carregou todas
-//            if (todasSugestoes.isEmpty()) {
-//                try {
-//                    val response = withContext(Dispatchers.IO) { pesquisaService.pesquisarUnidade("") } // traz todas
-//                    if (response.isSuccessful && response.body() != null) {
-//                        todasSugestoes = response.body()!!.unidadesDeSaude.map { it.nome }
-//                    }
-//                } catch (_: Exception) {
-//                    todasSugestoes = emptyList()
-//                }
-//            }
-//
-//            // 🔹 Filtrar localmente conforme o que o usuário digita
-//            sugestoes = todasSugestoes.filter { it.contains(textoPesquisa, ignoreCase = true) }
-//
-//        } else {
-//            sugestoes = emptyList()
-//        }
-//    }
-//
-//    // 🔹 Buscar filtros ao abrir o menu
-//    LaunchedEffect(expandirMenu) {
-//        if (expandirMenu) {
-//            if (especialidades.isEmpty()) {
-//                try {
-//                    val response = withContext(Dispatchers.IO) { filtroService.listarEspecialidade() }
-//                    if (response.isSuccessful) especialidades = response.body()?.especialidades.orEmpty()
-//                } catch (_: Exception) {}
-//            }
-//            if (unidades.isEmpty()) {
-//                try {
-//                    val response = withContext(Dispatchers.IO) { unidadeService.listarUnidades() }
-//                    if (response.isSuccessful) unidades = response.body()?.categorias.orEmpty()
-//                } catch (_: Exception) {}
-//            }
-//        }
-//    }
-//
-//    // 🔹 Buscar sugestões conforme digita (autocomplete)
-//    LaunchedEffect(textoPesquisa) {
-//        if (textoPesquisa.isNotBlank()) {
-//            delay(300)
-//            try {
-//                val response = withContext(Dispatchers.IO) { pesquisaService.pesquisarUnidade(textoPesquisa) }
-//                if (response.isSuccessful) {
-//                    sugestoes = response.body()?.unidadesDeSaude?.map { it.nome } ?: emptyList()
-//                }
-//            } catch (_: Exception) {
-//                sugestoes = emptyList()
-//            }
-//        } else {
-//            sugestoes = emptyList()
-//        }
-//    }
-//
-//    Box(modifier = Modifier.fillMaxSize()) {
-//        Column(modifier = Modifier.fillMaxSize()) {
-//            // 🔵 Barra azul
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(56.dp)
-//                    .padding(horizontal = 10.dp, vertical = 12.dp)
-//                    .background(Color(0xFF298BE6), RoundedCornerShape(38))
-//                    .zIndex(10f),
-//                contentAlignment = Alignment.CenterStart
-//            ) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(horizontal = 12.dp),
-//                    horizontalArrangement = Arrangement.SpaceBetween
-//                ) {
-//                    // Seta para abrir filtros
-//                    Icon(
-//                        imageVector = if (expandirMenu) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-//                        contentDescription = "Abrir/Fechar filtros",
-//                        tint = Color.White,
-//                        modifier = Modifier
-//                            .size(28.dp)
-//                            .clickable {
-//                                expandirMenu = !expandirMenu
-//                                if (expandirMenu) keyboardController?.hide()
-//                            }
-//                    )
-//
-//                    // Filtros selecionados + campo de texto
-//                    Row(
-//                        modifier = Modifier
-//                            .weight(1f)
-//                            .padding(horizontal = 8.dp)
-//                            .horizontalScroll(rememberScrollState()),
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-//                    ) {
-//                        val selecionados = listOfNotNull(
-//                            especialidadeSelecionada,
-//                            unidadeSelecionada,
-//                            disponibilidadeSelecionada
-//                        )
-//
-//                        // Mostrar filtros como botões
-//                        selecionados.forEach { item ->
-//                            Text(
-//                                text = item,
-//                                color = Color.Black,
-//                                fontSize = 12.sp,
-//                                maxLines = 1,
-//                                overflow = TextOverflow.Ellipsis,
-//                                modifier = Modifier
-//                                    .background(Color(0xFF7FBEF8), RoundedCornerShape(12.dp))
-//                                    .padding(horizontal = 6.dp, vertical = 4.dp)
-//                            )
-//                        }
-//
-//                        // Campo de texto
-//                        Box(modifier = Modifier.weight(1f)) {
-//                            BasicTextField(
-//                                value = textoPesquisa,
-//                                onValueChange = { textoPesquisa = it },
-//                                singleLine = true,
-//                                textStyle = LocalTextStyle.current.copy(color = Color.Black, fontSize = 16.sp),
-//                                cursorBrush = SolidColor(Color.Black),
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .onFocusChanged { campoFocado = it.isFocused }
-//                            )
-//
-//                            if (textoPesquisa.isEmpty() && !campoFocado) {
-//                                Text(
-//                                    text = "Procure por uma unidade",
-//                                    color = Color.Black.copy(alpha = 0.5f),
-//                                    fontSize = 16.sp
-//                                )
-//                            }
-//                        }
-//                    }
-//
-//                    // Ícone de lupa: filtrar pelo texto digitado
-//                    Icon(
-//                        imageVector = Icons.Default.Search,
-//                        contentDescription = "Pesquisar",
-//                        tint = Color.White,
-//                        modifier = Modifier
-//                            .size(24.dp)
-//                            .clickable {
-//                                if (textoPesquisa.isNotBlank()) {
-//                                    Log.d("BarraPesquisa", "Texto digitado: $textoPesquisa")
-//
-//                                    scope.launch(Dispatchers.IO) {
-//                                        try {
-//                                            // Buscar unidades da API usando o nome digitado
-//                                            val response = pesquisaService.pesquisarUnidade(textoPesquisa)
-//
-//                                            if (response.isSuccessful && response.body() != null) {
-//                                                val todasUnidades = response.body()!!.unidadesDeSaude
-//                                                Log.d("BarraPesquisa", "Unidades recebidas da API: ${todasUnidades.map { it.nome }}")
-//
-//                                                // Filtrar por similaridade (substring)
-//                                                val unidadesFiltradas = todasUnidades.filter {
-//                                                    it.nome.contains(textoPesquisa, ignoreCase = true)
-//                                                }
-//
-//                                                Log.d("BarraPesquisa", "Unidades filtradas: ${unidadesFiltradas.map { it.nome }}")
-//
-//                                                // Navegar para a tela de mapa com as unidades filtradas
-//                                                withContext(Dispatchers.Main) {
-//                                                    navController.currentBackStackEntry?.savedStateHandle?.set(
-//                                                        "unidadesFiltradas",
-//                                                        unidadesFiltradas
-//                                                    )
-//                                                    navController.navigate("mapafiltrado") { launchSingleTop = true }
-//                                                }
-//                                            } else {
-//                                                Log.e("BarraPesquisa", "Falha na API: ${response.errorBody()?.string()}")
-//                                            }
-//                                        } catch (e: Exception) {
-//                                            Log.e("BarraPesquisa", "Erro ao buscar unidades: ${e.message}")
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                    )
-//
-//
-//
-//                }
-//            }
-//
-//            // 🔽 Menu de sugestões autocomplete (apenas sugestões)
-//            AnimatedVisibility(visible = textoPesquisa.isNotBlank() && sugestoes.isNotEmpty()) {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(horizontal = 10.dp)
-//                        .zIndex(12f)
-//                        .background(Color.White, RoundedCornerShape(8.dp))
-//                        .border(1.dp, Color.LightGray)
-//                        .padding(vertical = 4.dp)
-//                ) {
-//                    Column {
-//                        sugestoes.forEach { nome ->
-//                            Text(
-//                                text = nome,
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .clickable {
-//                                        textoPesquisa = nome
-//                                        sugestoes = emptyList()
-//                                        keyboardController?.hide()
-//                                    }
-//                                    .padding(12.dp),
-//                                color = Color.Black
-//                            )
-//                        }
-//                    }
-//                }
-//            }
-//
-//            // ⚙️ Menu de filtros completo (abre só ao clicar na seta)
-//            AnimatedVisibility(visible = expandirMenu) {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .background(Color.White)
-//                        .zIndex(8f)
-//                ) {
-//                    Column(
-//                        modifier = Modifier
-//                            .fillMaxSize()
-//                            .verticalScroll(rememberScrollState())
-//                            .padding(top = 72.dp, bottom = 32.dp)
-//                    ) {
-//                        FiltroSingleSelectComFoto(
-//                            titulo = "Especialidades",
-//                            lista = especialidades.map { ItemComFoto(it.nome, it.foto_claro) },
-//                            selecionado = especialidadeSelecionada,
-//                            onSelect = { especialidadeSelecionada = it }
-//                        )
-//
-//                        FiltroSingleSelectComFoto(
-//                            titulo = "Unidades Públicas",
-//                            lista = unidades.map { ItemComFoto(it.nome, it.foto_claro) },
-//                            selecionado = unidadeSelecionada,
-//                            onSelect = { unidadeSelecionada = it }
-//                        )
-//
-//                        FiltroSingleSelect(
-//                            titulo = "Atendimento 24h",
-//                            lista = listOf("Sim", "Não"),
-//                            selecionado = disponibilidadeSelecionada,
-//                            onSelect = { disponibilidadeSelecionada = it }
-//                        )
-//
-//                        Spacer(modifier = Modifier.height(24.dp))
-//
-//                        Button(
-//                        onClick = {
-//                            val filtros = Filtros(
-//                                categoria = unidadeSelecionada,
-//                                especialidade = especialidadeSelecionada,
-//                                disponibilidade24h = disponibilidadeParaInt(disponibilidadeSelecionada)
-//                            )
-//
-//                            Log.d("Filtro", "Filtros selecionados: categoria=${filtros.categoria}, especialidade=${filtros.especialidade}, disponibilidade=${filtros.disponibilidade24h}")
-//
-//                            CoroutineScope(Dispatchers.IO).launch {
-//                                val response = apiFiltrar.filtrarUnidades(filtros)
-//
-//                                if (response.isSuccessful && response.body() != null) {
-//                                    val todasUnidades = response.body()!!.unidadesDeSaude
-//                                    Log.d("Filtro", "Unidades recebidas da API: ${todasUnidades.map { it.nome }}")
-//
-//                                    val unidadesFiltradas = todasUnidades.filter { unidade ->
-//                                        val categoriaOk = filtros.categoria?.let { selCategoria ->
-//                                            unidade.categoria.categoria?.any { cat -> cat.nome == selCategoria } ?: false
-//                                        } ?: true
-//
-//                                        val especialidadeOk = filtros.especialidade?.let { selEspecialidade ->
-//                                            unidade.especialidades.especialidades.any { esp -> esp.nome == selEspecialidade }
-//                                        } ?: true
-//
-//                                        val disponibilidadeOk = filtros.disponibilidade24h?.let { selDisp ->
-//                                            unidade.disponibilidade_24h == selDisp
-//                                        } ?: true
-//
-//                                        categoriaOk && especialidadeOk && disponibilidadeOk
-//                                    }
-//
-//                                    Log.d("Filtro", "Unidades filtradas: ${unidadesFiltradas.map { it.nome }}")
-//
-//                                    withContext(Dispatchers.Main) {
-//                                        navController.currentBackStackEntry?.let { currentEntry ->
-//                                            navController.navigate("mapafiltrado") {
-//                                                launchSingleTop = true
-//                                            }
-//                                            navController.getBackStackEntry("mapafiltrado")
-//                                                .savedStateHandle["unidadesFiltradas"] = unidadesFiltradas
-//                                        }
-//                                    }
-//                                } else {
-//                                    Log.e("Filtro", "Falha na API: ${response.errorBody()?.string()}")
-//                                }
-//                            }
-//                        }
-//                    ) {
-//                        Text(text = "Filtrar")
-//                    }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-//
-
-
-
-
-
-// ESTA 100% FUNCIONAL
-
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun BarraDePesquisaComFiltros(navController: NavHostController) {
-//
-//    var expandirMenu by remember { mutableStateOf(false) }
-//    var especialidadeSelecionada by remember { mutableStateOf<String?>(null) }
-//    var unidadeSelecionada by remember { mutableStateOf<String?>(null) }
-//    var disponibilidadeSelecionada by remember { mutableStateOf<String?>(null) }
-//
-//    var especialidades by remember { mutableStateOf<List<Especialidade>>(emptyList()) }
-//    var unidades by remember { mutableStateOf<List<Unidade>>(emptyList()) }
-//    var unidadesDoFiltro by remember { mutableStateOf<List<UnidadeDeSaude>>(emptyList()) }
-//
-//    //  API DE ESPECIALIDADES E UNIDADES PUBLICA
-//    val filtroService = remember { RetrofitFactoryFiltroEspecialidade().getFiltroService() }
-//    val unidadeService = remember { RetrofitFactoryFiltroUnidade().getUnidadeService() }
-//    val apiFiltrar = remember { RetrofitFactoryFiltrar().getUnidadesService() }
-//
-//    val scope = rememberCoroutineScope()
-//
-//    LaunchedEffect(expandirMenu) {
-//        if (expandirMenu) {
-//            if (especialidades.isEmpty()) {
-//                try {
-//                    val response =
-//                        withContext(Dispatchers.IO) { filtroService.listarEspecialidade() }
-//                    if (response.isSuccessful) especialidades =
-//                        response.body()?.especialidades.orEmpty()
-//                } catch (_: Exception) {
-//                }
-//            }
-//            if (unidades.isEmpty()) {
-//                try {
-//                    val response = withContext(Dispatchers.IO) { unidadeService.listarUnidades() }
-//                    if (response.isSuccessful) unidades = response.body()?.categorias.orEmpty()
-//                } catch (_: Exception) {
-//                }
-//            }
-//        }
-//    }
-//
-//    Box(modifier = Modifier.fillMaxSize()) {
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(56.dp)
-//                .padding(horizontal = 10.dp, vertical = 12.dp)
-//                .zIndex(10f)
-//                .background(Color(0xFF298BE6), RoundedCornerShape(38))
-//                .clickable { expandirMenu = !expandirMenu },
-//            contentAlignment = Alignment.CenterStart
-//        ) {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 12.dp),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Icon(
-//                    imageVector = if (expandirMenu) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-//                    contentDescription = "Abrir/Fechar menu",
-//                    tint = Color.White,
-//                    modifier = Modifier.size(24.dp)
-//                )
-//
-//                Row(
-//                    modifier = Modifier
-//                        .weight(1f)
-//                        .padding(horizontal = 5.dp)
-//                        .horizontalScroll(rememberScrollState()),
-//                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    val selecionados = listOfNotNull(
-//                        especialidadeSelecionada,
-//                        unidadeSelecionada,
-//                        disponibilidadeSelecionada
-//                    )
-//
-//                    if (selecionados.isEmpty()) {
-//                        Text(
-//                            text = "Procure por uma unidade",
-//                            color = Color.White,
-//                            style = MaterialTheme.typography.bodyMedium,
-//                            maxLines = 1,
-//                            overflow = TextOverflow.Ellipsis
-//                        )
-//                    } else {
-//                        selecionados.forEach { item ->
-//                            Text(
-//                                text = item,
-//                                color = Color.Black,
-//                                fontSize = 12.sp,
-//                                maxLines = 1,
-//                                overflow = TextOverflow.Ellipsis,
-//                                modifier = Modifier
-//                                    .background(Color(0xFF7FBEF8), RoundedCornerShape(12.dp))
-//                                    .padding(horizontal = 5.dp, vertical = 4.dp)
-//                            )
-//                        }
-//                    }
-//                }
-//
-//                Icon(
-//                    imageVector = Icons.Default.Search,
-//                    contentDescription = "Pesquisar",
-//                    tint = Color.White,
-//                    modifier = Modifier.size(20.dp)
-//                )
-//            }
-//        }
-//
-//        AnimatedVisibility(visible = expandirMenu) {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(Color.White)
-//                    .zIndex(9f)
-//            ) {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .verticalScroll(rememberScrollState())
-//                        .padding(top = 72.dp, bottom = 32.dp)
-//                ) {
-//
-//
-//                    FiltroSingleSelectComFoto(
-//                        titulo = "Especialidades",
-//                        lista = especialidades.map { ItemComFoto(it.nome, it.foto_claro) },
-//                        selecionado = especialidadeSelecionada,
-//                        onSelect = { especialidadeSelecionada = it }
-//                    )
-//
-//                    FiltroSingleSelectComFoto(
-//                        titulo = "Unidades Públicas",
-//                        lista = unidades.map { ItemComFoto(it.nome, it.foto_claro) },
-//                        selecionado = unidadeSelecionada,
-//                        onSelect = { unidadeSelecionada = it }
-//                    )
-//
-//
-//                    FiltroSingleSelect(
-//                        titulo = "Atendimento 24h",
-//                        lista = listOf("Sim", "Não"),
-//                        selecionado = disponibilidadeSelecionada,
-//                        onSelect = { disponibilidadeSelecionada = it }
-//                    )
-//
-//                    Spacer(modifier = Modifier.height(24.dp))
-//
-//                    Button(
-//                        onClick = {
-//                            val filtros = Filtros(
-//                                categoria = unidadeSelecionada,
-//                                especialidade = especialidadeSelecionada,
-//                                disponibilidade24h = disponibilidadeParaInt(disponibilidadeSelecionada)
-//                            )
-//
-//                            Log.d("Filtro", "Filtros selecionados: categoria=${filtros.categoria}, especialidade=${filtros.especialidade}, disponibilidade=${filtros.disponibilidade24h}")
-//
-//                            CoroutineScope(Dispatchers.IO).launch {
-//                                val response = apiFiltrar.filtrarUnidades(filtros)
-//
-//                                if (response.isSuccessful && response.body() != null) {
-//                                    val todasUnidades = response.body()!!.unidadesDeSaude
-//                                    Log.d("Filtro", "Unidades recebidas da API: ${todasUnidades.map { it.nome }}")
-//
-//                                    val unidadesFiltradas = todasUnidades.filter { unidade ->
-//                                        val categoriaOk = filtros.categoria?.let { selCategoria ->
-//                                            unidade.categoria.categoria?.any { cat -> cat.nome == selCategoria } ?: false
-//                                        } ?: true
-//
-//                                        val especialidadeOk = filtros.especialidade?.let { selEspecialidade ->
-//                                            unidade.especialidades.especialidades.any { esp -> esp.nome == selEspecialidade }
-//                                        } ?: true
-//
-//                                        val disponibilidadeOk = filtros.disponibilidade24h?.let { selDisp ->
-//                                            unidade.disponibilidade_24h == selDisp
-//                                        } ?: true
-//
-//                                        categoriaOk && especialidadeOk && disponibilidadeOk
-//                                    }
-//
-//                                    Log.d("Filtro", "Unidades filtradas: ${unidadesFiltradas.map { it.nome }}")
-//
-//                                    withContext(Dispatchers.Main) {
-//                                        navController.currentBackStackEntry?.let { currentEntry ->
-//                                            navController.navigate("mapafiltrado") {
-//                                                launchSingleTop = true
-//                                            }
-//                                            navController.getBackStackEntry("mapafiltrado")
-//                                                .savedStateHandle["unidadesFiltradas"] = unidadesFiltradas
-//                                        }
-//                                    }
-//                                } else {
-//                                    Log.e("Filtro", "Falha na API: ${response.errorBody()?.string()}")
-//                                }
-//                            }
-//                        }
-//                    ) {
-//                        Text(text = "Filtrar")
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
+// funcao para transformar a informacao de disponibilidade, pois no back ele recebe 0 e 1
 fun disponibilidadeParaInt(valor: String?): Int? {
     return when (valor) {
         "Sim" -> 1
@@ -1032,6 +478,7 @@ fun disponibilidadeParaInt(valor: String?): Int? {
     }
 }
 
+// funcao para puxar os icons que vem da api em cada filtro
 @Composable
 fun FiltroSingleSelectComFoto(
     titulo: String,
@@ -1078,7 +525,7 @@ fun FiltroSingleSelectComFoto(
                         .clickable { onSelect(if (selecionado == item.nome) null else item.nome) }
                         .padding(horizontal = 24.dp, vertical = 10.dp)
                 ) {
-                    // Foto à esquerda
+
                     item.fotoClaro?.let { fotoUrl ->
                         AsyncImage(
                             model = fotoUrl,
@@ -1101,7 +548,7 @@ fun FiltroSingleSelectComFoto(
     }
 }
 
-
+// funcao para puxar os icons que nao vem da api em disponibilidade, os icons aqui foi colocado manualmente
 @Composable
 fun FiltroSingleSelect(
     titulo: String,
@@ -1141,7 +588,6 @@ fun FiltroSingleSelect(
             }
         }
 
-        // 🔹 Lista de opções
         if (mostrar) {
             lista.forEach { item ->
                 Row(
@@ -1158,7 +604,6 @@ fun FiltroSingleSelect(
                         else -> null
                     }
 
-                    // Mostra imagem se existir
                     imagem?.let {
                         Image(
                             painter = painterResource(id = imagem),
