@@ -16,12 +16,13 @@ import br.senai.sp.jandira.tcc_pas.screens.HomeScreen
 import br.senai.sp.jandira.tcc_pas.screens.TelaDescricacaoCampanhas
 import br.senai.sp.jandira.tcc_pas.screens.TelaLogin
 import br.senai.sp.jandira.tcc_pas.screens.TelaMapa
+import com.google.gson.reflect.TypeToken
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = "unidadePublica/5") {
         composable("login") { TelaLogin(navController) }
         composable("home") { HomeScreen(navController) }
         composable(

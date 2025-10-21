@@ -34,7 +34,8 @@ data class UnidadeDeSaudeResponse(
     val disponibilidade_24h: Int,
     val foto: String?,
     val local: LocalWrapper,
-    val tempo_espera_geral: String
+    val tempo_espera_geral: String,
+    val especialidades: EspecialidadesWrapper? = null
 )
 data class LocalWrapper(
     val endereco: List<Endereco>
@@ -107,7 +108,8 @@ data class Especialidade(
     val id: Int,
     val nome: String,
     val foto_claro: String,
-    val foto_escuro: String
+    val foto_escuro: String,
+//    val tempo_espera: String
 )
 
 data class EspecialidadeResponse(
