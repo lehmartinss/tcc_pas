@@ -16,16 +16,18 @@ import br.senai.sp.jandira.tcc_pas.screens.HomeScreen
 import br.senai.sp.jandira.tcc_pas.screens.TelaDescricacaoCampanhas
 import br.senai.sp.jandira.tcc_pas.screens.TelaLogin
 import br.senai.sp.jandira.tcc_pas.screens.TelaMapa
+import br.senai.sp.jandira.tcc_pas.screens.TelaMapaNavBar
 import com.google.gson.reflect.TypeToken
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = "mapanav") {
         composable("login") { TelaLogin(navController) }
         composable("home") { HomeScreen(navController) }
         composable("mapa") { TelaMapa(navController) }
+        composable("mapanav") { TelaMapaNavBar(navController) }
         composable(
             "campanha/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType })
