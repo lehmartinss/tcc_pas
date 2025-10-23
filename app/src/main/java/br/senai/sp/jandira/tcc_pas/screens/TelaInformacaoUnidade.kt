@@ -66,6 +66,7 @@ import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltrar
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroUnidade
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import coil.compose.AsyncImage
+import org.w3c.dom.Text
 
 
 @Composable
@@ -149,7 +150,7 @@ fun TelaInformacaoUnidade(
     id: Int,
     navController: NavHostController
 ) {
-    var unidade by remember { mutableStateOf<UnidadeDeSaude?>(null) }
+    var unidade by remember { mutableStateOf<UnidadeDeSaude?>(null) } // Estado da unidade
     val apiUnidade = RetrofitFactoryFiltrar().getUnidadesService()
     var expandir by remember { mutableStateOf(false) }
 
@@ -157,12 +158,13 @@ fun TelaInformacaoUnidade(
         try {
             val response = apiUnidade.getUnidadePorId(id)
             if (response.isSuccessful) {
-                val lista = response.body()?.unidadesDeSaude
-                if (!lista.isNullOrEmpty()) {
-                    unidade = lista.first() // agora é UnidadeDeSaude
+                val unidadeResponse = response.body()?.unidadeDeSaude
+                if (unidadeResponse != null) {
+                    // Atualiza o estado com a unidade
+                    unidade = unidadeResponse
                     Log.d("INFO_UNIDADE", "✅ Unidade carregada: ${unidade?.nome}")
                 } else {
-                    Log.e("INFO_UNIDADE", "❌ Nenhuma unidade encontrada na lista")
+                    Log.e("INFO_UNIDADE", "❌ Unidade não encontrada.")
                 }
             } else {
                 Log.e("INFO_UNIDADE", "❌ Erro ${response.code()} - ${response.message()}")
@@ -171,7 +173,6 @@ fun TelaInformacaoUnidade(
             Log.e("INFO_UNIDADE", "🚨 Erro ao buscar unidade: ${e.message}")
         }
     }
-
 
 
 
@@ -226,13 +227,13 @@ fun TelaInformacaoUnidade(
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
-//            Text(
-//                text = unidade?. ?: "-",
-//                fontSize = 28.sp,
-//                fontWeight = FontWeight.Bold,
-//                color = Color.Black,
-//                textAlign = TextAlign.Center
-//            )
+            Text(
+                text = unidade?.tempo_espera_geral ?: "Tempo de espera não disponível ",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            )
         }
         //     🔹 Divider
         item {
@@ -259,12 +260,13 @@ fun TelaInformacaoUnidade(
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
-//                    Text(
-//                        text = unidade?.tipo ?: "-",
-//                        fontSize = 16.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color(0xFF298BE6)
-//                    )
+
+                Text(
+                  text = unidade?.categoria?.categoria?.get(0)?.nome ?: "Nenhuma categoria disponível",
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = Color(0xFF298BE6)
+                )
             }
         }
         // endereco
@@ -282,12 +284,19 @@ fun TelaInformacaoUnidade(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-//                    Text(
-//                        text = unidade?.local ?: "-",
-//                        fontSize = 16.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color(0xFF298BE6)
-//                    )
+                val endereco = unidade?.local?.endereco?.get(0)
+                val enderecoTexto = if (endereco != null) {
+                    "${endereco.logradouro} - ${endereco.estado} , ${endereco.cidade}"
+                } else {
+                    "Nenhum endereço disponível"
+                }
+
+                Text(
+                    text = enderecoTexto,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF298BE6)
+                )
             }
         }
         // 🔹 Telefone
@@ -306,21 +315,21 @@ fun TelaInformacaoUnidade(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = unidade?.telefone ?: "-",
+                    text = unidade?.telefone ?: "Nenhum telefone disponível",
                     fontSize = 14.sp,
                     color = Color(0xFF298BE6)
                 )
             }
         }
         item {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(26.dp))
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .clickable { expandir = !expandir },
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF7FBEF8)),
                 shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
@@ -331,16 +340,16 @@ fun TelaInformacaoUnidade(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "Selecione uma especialidade",
+                            text = "Tempo de espera das especialidades",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = Color.White
                         )
 
                         Icon(
                             imageVector = if (expandir) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                             contentDescription = null,
-                            tint = Color(0xFF298BE6)
+                            tint = Color.White
                         )
                     }
                 }
@@ -360,24 +369,25 @@ fun TelaInformacaoUnidade(
                                         .fillMaxWidth()
                                         .padding(vertical = 6.dp)
                                         .background(Color(0xFFEAF2FB), RoundedCornerShape(12.dp))
-                                        .padding(12.dp)
+                                        .padding(10.dp)
                                 ) {
                                     Text(
                                         text = especialidade.nome,
-                                        fontWeight = FontWeight.SemiBold,
+                                        fontWeight = FontWeight.Bold,
                                         fontSize = 15.sp,
                                         color = Color(0xFF123B6D)
                                     )
 
                                     Spacer(modifier = Modifier.height(4.dp))
 
-//                                    Text(
-//                                        text = "Tempo de espera: ${unidade?.tempoEsperaGeral ?: "-"}",
-//                                        fontSize = 13.sp,
-//                                        color = Color.DarkGray
-//                                    )
-//                                }
+                                    Text(
+                                        text = "Tempo de espera: ${unidade?.tempo_espera_geral ?: "-"}",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFF123B6D)
+                                    )
                                 }
+
                             }
                         }
                     }
@@ -388,6 +398,7 @@ fun TelaInformacaoUnidade(
         }
     }
 }
+
 
 
 //        //@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)

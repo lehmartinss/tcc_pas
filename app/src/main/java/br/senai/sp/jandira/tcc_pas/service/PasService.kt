@@ -49,7 +49,7 @@ interface PasService {
 //    @GET("v1/pas/unidades/{id}")
 //    suspend fun getUnidadePorId(@Path("id") id: Int): Response<UnidadeDeSaudeResponse>
 
-    @GET("unidades/{id}")
+    @GET("v1/pas/unidades/{id}")
     suspend fun getUnidadePorId(@Path("id") id: Int): Response<UnidadePorIdResponse>
 
 

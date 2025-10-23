@@ -190,8 +190,8 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 10.dp, vertical = 12.dp)
+                .height(65.dp)
+                .padding(horizontal = 15.dp, vertical = 12.dp)
                 .background(Color(0xFF298BE6), RoundedCornerShape(38))
                 .zIndex(10f),
             contentAlignment = Alignment.CenterStart
