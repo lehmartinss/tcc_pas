@@ -1,6 +1,7 @@
 package br.senai.sp.jandira.tcc_pas.model
 
 import android.R
+import com.google.gson.annotations.SerializedName
 
 data class FiltrarUnidadesResponse(
     val status: Boolean,
@@ -27,16 +28,26 @@ data class UnidadeDeSaude(
     val especialidades: EspecialidadesWrapper
 )
 
-data class UnidadeDeSaudeResponse(
-    val id: Int,
-    val nome: String,
-    val telefone: String,
-    val disponibilidade_24h: Int,
-    val foto: String?,
-    val local: LocalWrapper,
-    val tempo_espera_geral: String,
-    val especialidades: EspecialidadesWrapper? = null
+data class UnidadePorIdResponse(
+    val status: Boolean,
+    val status_code: Int,
+    val item: Int,
+    val unidadesDeSaude: List<UnidadeDeSaude>
 )
+
+
+data class UnidadeDeSaudeResponse(
+    @SerializedName("id") val id: Int,
+    @SerializedName("nome") val nome: String?,
+    @SerializedName("telefone") val telefone: String?,
+    @SerializedName("disponibilidade_24h") val disponibilidade24h: Int,
+    @SerializedName("foto") val foto: String?,
+    @SerializedName("tempoEsperaGeral") val tempoEsperaGeral: String?,
+    @SerializedName("local") val local: LocalWrapper?,
+    @SerializedName("especialidades") val especialidades: EspecialidadesWrapper? = null
+)
+
+
 data class LocalWrapper(
     val endereco: List<Endereco>
 )

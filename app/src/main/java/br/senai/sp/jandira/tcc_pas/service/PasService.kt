@@ -12,6 +12,7 @@ import br.senai.sp.jandira.tcc_pas.model.PesquisaResponse
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaudeResponse
 import br.senai.sp.jandira.tcc_pas.model.UnidadeResponse
 import br.senai.sp.jandira.tcc_pas.model.NominatimAddressItem
+import br.senai.sp.jandira.tcc_pas.model.UnidadePorIdResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -45,9 +46,11 @@ interface PasService {
     @GET("v1/pas/pesquisa/{termo}")
     suspend fun pesquisar(@Path("termo") termo: String): Response<PesquisaResponse>
 
-    @GET("v1/pas/unidades/{id}")
-    suspend fun getUnidadePorId(@Path("id") id: Int): Response<UnidadeDeSaudeResponse>
+//    @GET("v1/pas/unidades/{id}")
+//    suspend fun getUnidadePorId(@Path("id") id: Int): Response<UnidadeDeSaudeResponse>
 
+    @GET("unidades/{id}")
+    suspend fun getUnidadePorId(@Path("id") id: Int): Response<UnidadePorIdResponse>
 
 
     // Open Street Map

@@ -59,6 +59,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.CampanhaResponse
+import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaudeResponse
 import br.senai.sp.jandira.tcc_pas.model.UnidadeResponse
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltrar
@@ -148,18 +149,21 @@ fun TelaInformacaoUnidade(
     id: Int,
     navController: NavHostController
 ) {
-    var unidade by remember { mutableStateOf<UnidadeDeSaudeResponse?>(null) }
+    var unidade by remember { mutableStateOf<UnidadeDeSaude?>(null) }
     val apiUnidade = RetrofitFactoryFiltrar().getUnidadesService()
     var expandir by remember { mutableStateOf(false) }
 
-    // 🔹 Chamada da API ao entrar na tela
     LaunchedEffect(id) {
-        Log.d("INFO_UNIDADE", "🔍 Buscando unidade com id: $id")
         try {
             val response = apiUnidade.getUnidadePorId(id)
             if (response.isSuccessful) {
-                unidade = response.body()
-                Log.d("INFO_UNIDADE", "✅ Unidade carregada: ${unidade?.nome}")
+                val lista = response.body()?.unidadesDeSaude
+                if (!lista.isNullOrEmpty()) {
+                    unidade = lista.first() // agora é UnidadeDeSaude
+                    Log.d("INFO_UNIDADE", "✅ Unidade carregada: ${unidade?.nome}")
+                } else {
+                    Log.e("INFO_UNIDADE", "❌ Nenhuma unidade encontrada na lista")
+                }
             } else {
                 Log.e("INFO_UNIDADE", "❌ Erro ${response.code()} - ${response.message()}")
             }
@@ -167,6 +171,9 @@ fun TelaInformacaoUnidade(
             Log.e("INFO_UNIDADE", "🚨 Erro ao buscar unidade: ${e.message}")
         }
     }
+
+
+
 
     LazyColumn(
         modifier = Modifier
@@ -219,13 +226,13 @@ fun TelaInformacaoUnidade(
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = unidade?.tempo_espera_geral ?: "-",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                textAlign = TextAlign.Center
-            )
+//            Text(
+//                text = unidade?. ?: "-",
+//                fontSize = 28.sp,
+//                fontWeight = FontWeight.Bold,
+//                color = Color.Black,
+//                textAlign = TextAlign.Center
+//            )
         }
         //     🔹 Divider
         item {
@@ -364,29 +371,33 @@ fun TelaInformacaoUnidade(
 
                                     Spacer(modifier = Modifier.height(4.dp))
 
-                                    Text(
-                                        text = "Tempo de espera: ${unidade?.tempo_espera_geral ?: "-"}",
-                                        fontSize = 13.sp,
-                                        color = Color.DarkGray
-                                    )
+//                                    Text(
+//                                        text = "Tempo de espera: ${unidade?.tempoEsperaGeral ?: "-"}",
+//                                        fontSize = 13.sp,
+//                                        color = Color.DarkGray
+//                                    )
+//                                }
                                 }
                             }
                         }
                     }
                 }
+
             }
 
         }
-
-    }
-
-    //@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
-    @Composable
-     fun HomeInformacaoUnidadePreview() {
-        Tcc_PasTheme {
-            val navController = rememberNavController()
-            HomeInformacaoUnidade(navController = navController, id = 5)
-        }
     }
 }
+
+
+//        //@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+//        @Composable
+//        fun HomeInformacaoUnidadePreview() {
+//            Tcc_PasTheme {
+//                val navController = rememberNavController()
+//                HomeInformacaoUnidade(navController = navController, id = 5)
+//            }
+//        }
+
+
 
