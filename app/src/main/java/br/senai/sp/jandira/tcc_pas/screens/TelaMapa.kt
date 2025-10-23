@@ -464,7 +464,6 @@ fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude, map
 
         }
     }
-}
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
