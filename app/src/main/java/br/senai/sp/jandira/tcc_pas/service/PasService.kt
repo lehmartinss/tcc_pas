@@ -11,6 +11,7 @@ import br.senai.sp.jandira.tcc_pas.model.LoginResponse
 import br.senai.sp.jandira.tcc_pas.model.PesquisaResponse
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaudeResponse
 import br.senai.sp.jandira.tcc_pas.model.UnidadeResponse
+import br.senai.sp.jandira.tcc_pas.model.NominatimAddressItem
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -48,5 +49,30 @@ interface PasService {
     suspend fun getUnidadePorId(@Path("id") id: Int): Response<UnidadeDeSaudeResponse>
 
 
+
+    // Open Street Map
+
+    @GET("search")
+    suspend fun buscarPorCep(
+        @Query("postalcode") cep: String,
+
+        // já pré-definido
+        @Query("countrycodes") countryCodes: String = "BR",
+        @Query("format") format: String = "json",
+        @Query("limit") limit: Int = 1,
+        @Query("addressdetails") addressDetails: Int = 1
+    ): Response<List<NominatimAddressItem>>
+
+    @GET("reverse")
+    suspend fun buscarPorCoord(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+
+        // já pré-definido
+        @Query("format") format: String = "json",
+        @Query("addressdetails") addressDetails: Int = 1
+    ): Response<NominatimAddressItem>
+
+//    https://nominatim.openstreetmap.org/reverse?lat=-23.52864&lon=-46.89797&format=json&addressdetails=1
 }
 

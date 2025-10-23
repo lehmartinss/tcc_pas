@@ -87,6 +87,10 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-flowlayout:0.32.0")
 
+    // osmdroid e fused location provider
+
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
 

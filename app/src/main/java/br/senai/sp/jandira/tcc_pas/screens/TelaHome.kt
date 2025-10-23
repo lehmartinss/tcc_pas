@@ -1,7 +1,11 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -61,13 +65,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
@@ -81,15 +88,95 @@ import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroDisponibilidade
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroEspecialidade
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroUnidade
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryOSM
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import coil.compose.AsyncImage
+import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
 
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
+
+    val api = RetrofitFactoryOSM().getOSMService()
+
+    val context = LocalContext.current
+
+    // osmdroid
+    var latitude by remember { mutableStateOf(0.0) }
+    var longitude by remember { mutableStateOf(0.0) }
+
+    var mapView: MapView? by remember { mutableStateOf(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    // 🛰️ FUSED → cria o cliente de localização
+    val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    // 🧩 PERMISSÃO → controla se o usuário já deu acesso à localização
+    val locationPermissionGranted = remember { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted -> locationPermissionGranted.value = granted }
+
+    // 🧩 PERMISSÃO → pede permissão assim que o composable é carregado
+    LaunchedEffect(Unit) {
+        val granted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) {
+            launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            locationPermissionGranted.value = true
+        }
+    }
+
+    // 🚀 Quando a permissão de localização for concedida, pega a localização e centraliza o mapa
+    LaunchedEffect(locationPermissionGranted.value) {
+        if (locationPermissionGranted.value) {
+            try {
+                fusedClient.lastLocation.addOnSuccessListener { loc ->
+                    if (loc != null) {
+                        latitude = loc.latitude
+                        longitude = loc.longitude
+
+                        Log.i("Localização", "Lat: $latitude | Lon: $longitude")
+
+                        // Atualiza o mapa se já tiver sido criado
+                        mapView?.controller?.apply {
+                            setZoom(18.0)
+                            setCenter(GeoPoint(latitude, longitude))
+                        }
+
+                        val marker = org.osmdroid.views.overlay.Marker(mapView)
+                        marker.position = GeoPoint(latitude, longitude)
+                        marker.title = "Você está aqui"
+                        marker.setAnchor(
+                            org.osmdroid.views.overlay.Marker.ANCHOR_CENTER,
+                            org.osmdroid.views.overlay.Marker.ANCHOR_BOTTOM
+                        )
+
+                        // Limpa marcadores antigos e adiciona o novo
+                        mapView?.overlays?.clear()
+                        mapView?.overlays?.add(marker)
+                        mapView?.invalidate()
+
+                    } else {
+                        Log.w("Localização", "Localização nula — GPS desligado ou sem sinal")
+                    }
+                }
+            } catch (e: SecurityException) {
+                Log.e("Localização", "Erro de permissão: ${e.message}")
+            }
+        }
+    }
+
 
     // Retrofit da API de campanhas
     val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
@@ -126,7 +213,24 @@ fun HomeScreen(navController: NavHostController) {
                     .fillMaxWidth()
                     .height(326.dp)
                     .background(Color(0xFF93979F))
-            )
+            ){
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { context ->
+                        MapView(context).apply {
+                            setTileSource(TileSourceFactory.MAPNIK)
+                            setMultiTouchControls(true)
+                            controller.setZoom(19.0)
+                            controller.setCenter(GeoPoint(latitude, longitude))
+                            mapView = this
+                        }
+                    }
+                )
+
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+            }
 
             Box(
                 modifier = Modifier

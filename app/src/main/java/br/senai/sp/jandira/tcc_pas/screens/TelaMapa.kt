@@ -1,9 +1,15 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
+import android.Manifest
+import android.R.attr.onClick
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +32,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +48,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -51,17 +59,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryOSM
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
+import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.launch
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 
 
 @Composable
@@ -81,7 +100,127 @@ fun HomeMapa(navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
+fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = emptyList()) {
+
+    val unidadeGeoMap = remember { mutableStateMapOf<String, GeoPoint>() }
+
+    val api = RetrofitFactoryOSM().getOSMService()
+
+    val context = LocalContext.current
+
+    // osmdroid
+    var latitude by remember { mutableStateOf(0.0) }
+    var longitude by remember { mutableStateOf(0.0) }
+
+    var mapView: MapView? by remember { mutableStateOf(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    // 🛰️ FUSED → cria o cliente de localização
+    val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    // 🧩 PERMISSÃO → controla se o usuário já deu acesso à localização
+    val locationPermissionGranted = remember { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted -> locationPermissionGranted.value = granted }
+
+    // 🧩 PERMISSÃO → pede permissão assim que o composable é carregado
+    LaunchedEffect(Unit) {
+        val granted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) {
+            launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            locationPermissionGranted.value = true
+        }
+    }
+
+    LaunchedEffect(locationPermissionGranted.value) {
+        if (locationPermissionGranted.value) {
+            try {
+                val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+                fusedClient.lastLocation.addOnSuccessListener { loc ->
+                    if (loc != null) {
+                        scope.launch {
+                            isLoading = true
+
+                            // 🔹 Primeiro, carrega a localização do usuário
+                            val response = api.buscarPorCoord(loc.latitude, loc.longitude)
+                            val item = response.body()
+                            if (item != null) {
+                                val geoPoint = GeoPoint(item.lat.toDouble(), item.lon.toDouble())
+                                latitude = geoPoint.latitude
+                                longitude = geoPoint.longitude
+                                mapView?.controller?.setCenter(geoPoint)
+                            }
+
+                            // 🔹 Depois, se houver unidades, mostra a PRIMEIRA no mapa
+                            if (unidades.isNotEmpty()) {
+
+                                var primeiraUnidadeCentralizada = false // pra centralizar só uma vez
+
+                                unidades.forEach { unidade ->
+
+                                    val endereco = unidade.local.endereco[0].cep
+
+                                    try {
+                                        val response = api.buscarPorCep(endereco)
+                                        val lista = response.body()
+
+                                        if (!lista.isNullOrEmpty()) {
+                                            val geo = lista.first()
+
+                                            val geoPoint = GeoPoint(geo.lat.toDouble(), geo.lon.toDouble())
+                                            val marker = Marker(mapView)
+
+                                            marker.position = geoPoint
+                                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                                            marker.title = unidade.nome
+
+                                            // Adiciona o marcador ao mapa (sem recriar)
+                                            mapView?.overlays?.add(marker)
+
+                                            // **preenche o cache**
+                                            unidadeGeoMap[unidade.nome] = geoPoint
+
+                                            // Centraliza no primeiro marcador válido
+                                            if (!primeiraUnidadeCentralizada) {
+                                                mapView?.controller?.setZoom(18.0)
+                                                mapView?.controller?.setCenter(geoPoint)
+                                                primeiraUnidadeCentralizada = true
+                                            }
+
+                                            Log.i("MAPA", "Marcador adicionado: ${unidade.nome} -> ${geo.display_name}")
+
+                                        } else {
+                                            Log.w("MAPA", "Nenhum resultado encontrado para o CEP: $endereco")
+                                        }
+
+                                    } catch (e: Exception) {
+                                        Log.e("MAPA", "Erro ao buscar CEP $endereco", e)
+                                    }
+                                }
+
+                                // Atualiza o mapa depois de adicionar tudo
+                                mapView?.invalidate()
+                            }
+
+
+                            isLoading = false
+                        }
+                    }
+                }
+            } catch (e: SecurityException) {
+                Log.e("LOCALIZAÇÃO", "Permissão negada.")
+            }
+        }
+    }
+
+
+
 
 
     val density = LocalDensity.current
@@ -161,7 +300,9 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                             unidades.forEach { unidade ->
                                 CartaoUnidade(
                                     navController = navController,
-                                    unidade = unidade
+                                    unidade = unidade,
+                                    mapView = mapView,
+                                    unidadeGeoMap = unidadeGeoMap
                                 )
                                 Spacer(Modifier.height(8.dp))
                             }
@@ -178,9 +319,26 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude>) {
                     Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .background(Color(0xFF93979F))
+                        .background(Color(0xFF0035A2))
+                ){
+                    AndroidView(
+                        modifier = Modifier.fillMaxSize(),
+                        factory = { context ->
+                            MapView(context).apply {
+                                setTileSource(TileSourceFactory.MAPNIK)
+                                setMultiTouchControls(true)
+                                controller.setZoom(19.0)
+                                controller.setCenter(GeoPoint(latitude, longitude))
+                                mapView = this
+                            }
+                        }
+                    )
 
-                )
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+                }
+
             }
 
             AnimatedVisibility(
@@ -270,23 +428,19 @@ fun BarraDeNavegacaoMapa(navController: NavHostController?) {
 
 
 @Composable
-fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude) {
+fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude, mapView: MapView?, unidadeGeoMap: Map<String, GeoPoint>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFFEAF2FB), RoundedCornerShape(16.dp))
             .padding(16.dp)
-    ) {
-        Text(
-            text = unidade.nome ?: "Sem nome",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color(0xFF123B6D)
-        )
-        Spacer(Modifier.height(8.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+            .clickable {
+                // centraliza a unidade no mapa ao clicar
+                unidadeGeoMap[unidade.nome]?.let { geo ->
+                    mapView?.controller?.animateTo(geo)
+                    mapView?.controller?.setZoom(18.0)
+                }
+            }
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -320,10 +474,23 @@ private fun HomeMapaPreview() {
     }
 }
 
-@Preview
-@Composable
-private fun BarraDeNavegacaoMapaPreview() {
-    Tcc_PasTheme {
-        BarraDeNavegacaoMapa(null)
-    }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
