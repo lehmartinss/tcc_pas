@@ -298,6 +298,7 @@ fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude) {
             }
             Button(
                 onClick = {
+                    Log.d("NAV_TESTE", "Clicou em Saber mais da unidade: ${unidade.id}")
                     navController.navigate("unidadePublica/${unidade.id}")
                 },
                 shape = RoundedCornerShape(20.dp),

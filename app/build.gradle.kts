@@ -87,4 +87,7 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-flowlayout:0.32.0")
 
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+
 }
