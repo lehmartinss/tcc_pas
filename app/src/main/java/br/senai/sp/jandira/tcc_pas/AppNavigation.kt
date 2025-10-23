@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
 import br.senai.sp.jandira.tcc_pas.screens.HomeCampanha
+import br.senai.sp.jandira.tcc_pas.screens.HomeInformacaoUnidade
 import br.senai.sp.jandira.tcc_pas.screens.HomeMapa
 
 //import br.senai.sp.jandira.tcc_pas.screens.HomeMapa
@@ -15,6 +16,7 @@ import br.senai.sp.jandira.tcc_pas.screens.HomeScreen
 import br.senai.sp.jandira.tcc_pas.screens.TelaDescricacaoCampanhas
 import br.senai.sp.jandira.tcc_pas.screens.TelaLogin
 import br.senai.sp.jandira.tcc_pas.screens.TelaMapa
+import com.google.gson.reflect.TypeToken
 
 @Composable
 fun AppNavigation() {
@@ -38,6 +40,13 @@ fun AppNavigation() {
                 ?.get<List<UnidadeDeSaude>>("unidadesFiltradas") ?: emptyList()
 
             TelaMapa(navController, unidadesFiltradas)
+        }
+        composable(
+            "unidadePublica/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("id") ?: 0
+            HomeInformacaoUnidade(navController, id)
         }
 
     }

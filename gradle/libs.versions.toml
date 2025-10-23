@@ -15,6 +15,8 @@ foundation = "1.9.2"
 navigationRuntimeKtx = "2.9.5"
 material3Version = "1.4.0"
 playServicesLocation = "21.3.0"
+foundationVersion = "1.9.3"
+foundationLayoutVersion = "1.9.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,6 +40,8 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Version" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
+androidx-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayoutVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -8,6 +8,8 @@ import br.senai.sp.jandira.tcc_pas.model.Filtros
 import retrofit2.http.Body
 import br.senai.sp.jandira.tcc_pas.model.Login
 import br.senai.sp.jandira.tcc_pas.model.LoginResponse
+import br.senai.sp.jandira.tcc_pas.model.PesquisaResponse
+import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaudeResponse
 import br.senai.sp.jandira.tcc_pas.model.UnidadeResponse
 import br.senai.sp.jandira.tcc_pas.model.NominatimAddressItem
 import retrofit2.Response
@@ -39,6 +41,12 @@ interface PasService {
 
     @POST("v1/pas/unidades/filtrar")
     suspend fun filtrarUnidades(@Body filtros: Filtros): Response<FiltrarUnidadesResponse>
+
+    @GET("v1/pas/pesquisa/{termo}")
+    suspend fun pesquisar(@Path("termo") termo: String): Response<PesquisaResponse>
+
+    @GET("v1/pas/unidades/{id}")
+    suspend fun getUnidadePorId(@Path("id") id: Int): Response<UnidadeDeSaudeResponse>
 
 
 

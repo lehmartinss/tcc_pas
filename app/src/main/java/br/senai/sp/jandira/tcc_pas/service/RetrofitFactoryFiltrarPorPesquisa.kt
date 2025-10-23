@@ -6,9 +6,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-class RetrofitFactoryFiltroUnidade {
+class RetrofitFactoryFiltrarPorPesquisa {
 
-        private val BASE_URL = "https://api-tcc-node-js-1.onrender.com/"
+    private val BASE_URL = "https://api-tcc-node-js-1.onrender.com/"
 
     // utilizamos isto para configuração do cliente HTTP com tempo limite maior
     private val logging = HttpLoggingInterceptor().apply {
@@ -22,16 +22,14 @@ class RetrofitFactoryFiltroUnidade {
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    private  val retrofitFactory =
-            Retrofit
-                .Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+    private val retrofitFactory =
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
+            .build()
 
-
-        fun getUnidadeService(): PasService {
-            return retrofitFactory.create(PasService::class.java)
-        }
-
+    fun getPesquisaService(): PasService {
+        return retrofitFactory.create(PasService::class.java)
+    }
 }

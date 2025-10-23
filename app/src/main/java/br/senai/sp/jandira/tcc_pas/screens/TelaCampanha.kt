@@ -131,7 +131,7 @@ private fun BarraDeNavegacaoCampanhaPreview(){
     }
 }
 
-
+// funcao para os "cards"
 @Composable
 fun ExpandableSection(
     title: String,
@@ -181,7 +181,7 @@ fun ExpandableSection(
 }
 
 
-// FUNCAO PARA PERSONALIZAR TEXTO
+// funcao para personalizar texto
 @Composable
 fun InfoText(label: String, value: String) {
     Text(
@@ -208,7 +208,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
 
     val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
 
-    // Buscar dados da campanha
+    // busca dados da campanha
     LaunchedEffect(id) {
         try {
             val response = withContext(Dispatchers.IO) { apiCampanha.getCampanha(id) }
@@ -241,7 +241,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
                 .fillMaxSize()
                 .padding(horizontal = 20.dp, vertical = 70.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(bottom = 80.dp) // garante espaço para o último botão
+            contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             item {
                 Text(
@@ -319,10 +319,9 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
                     content = {
                         Column(modifier = Modifier.padding(start = 8.dp)) {
                             campanha?.cidades?.forEach { cidadeItem ->
-                                // Nome da cidade (preto)
+
                                 InfoText("Cidade", cidadeItem.cidade)
 
-                                // Unidades (azul)
                                 cidadeItem.unidades_disponiveis.forEach { unidade ->
                                     Text(
                                         text = "- $unidade",

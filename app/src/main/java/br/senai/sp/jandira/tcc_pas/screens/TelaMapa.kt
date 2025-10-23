@@ -44,6 +44,7 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -84,12 +85,17 @@ import org.osmdroid.views.overlay.Marker
 
 @Composable
 fun HomeMapa(navController: NavHostController) {
-    val unidadesFiltradas = navController.currentBackStackEntry
-        ?.savedStateHandle
-        ?.get<List<UnidadeDeSaude>>("unidadesFiltradas") ?: emptyList()
+    // pega o backstack atual de forma segura
+    val currentBackStackEntry = navController.currentBackStackEntry
+    val savedStateHandle = currentBackStackEntry?.savedStateHandle
+
+    val unidadesFiltradas = savedStateHandle
+        ?.get<List<UnidadeDeSaude>>("unidadesFiltradas")
+        ?: emptyList()
 
     TelaMapa(navController, unidadesFiltradas)
 }
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -272,17 +278,17 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
 
         Box(Modifier.fillMaxSize()) {
 
-            // (1) Mapa + Sheet (embaixo)
             BottomSheetScaffold(
                 modifier = Modifier
                     .matchParentSize()
                     .zIndex(1f),
                 scaffoldState = scaffoldState,
-                sheetPeekHeight = peek,                       // <- PEEK dinâmico (com key)
+                sheetPeekHeight = peek,
                 sheetSwipeEnabled = true,
                 sheetDragHandle = { BottomSheetDefaults.DragHandle() },
                 sheetContainerColor = Color.White,
                 sheetContent = {
+
                     // garante que possa expandir até o topo
                     Column(
                         Modifier
@@ -293,7 +299,8 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
                         if (unidades.isNotEmpty()) {
                             unidades.forEach { unidade ->
                                 CartaoUnidade(
-                                    nomeUnidade = unidade.nome,
+                                    navController = navController,
+                                    unidade = unidade,
                                     mapView = mapView,
                                     unidadeGeoMap = unidadeGeoMap
                                 )
@@ -334,24 +341,17 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
 
             }
 
-            // (2) Search bar sobre o sheet
             AnimatedVisibility(
                 visible = !hideChrome,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 8.dp, start = 10.dp, end = 10.dp)
+                    .fillMaxWidth()
                     .zIndex(2f)
+
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .zIndex(10f)
-                ) {
-                    BarraDePesquisaComFiltros(navController = navController)
-                }
+                BarraDePesquisaComFiltros(navController = navController)
             }
 
-            // (3) Bottom nav por cima de tudo (mede altura real p/ encaixe)
             AnimatedVisibility(
                 visible = !hideChrome,
                 modifier = Modifier
@@ -369,37 +369,66 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
 
 
 
-// ------- SUA NAV BAR (inalterada, apenas referenciada acima) -------
+
 @Composable
 fun BarraDeNavegacaoMapa(navController: NavHostController?) {
-    NavigationBar(containerColor = Color(0xFF298BE6)) {
+    NavigationBar(
+        containerColor = Color(0xFF298BE6)
+    ) {
         NavigationBarItem(
             selected = false,
-            onClick = { navController?.navigate("Home") },
-            icon = { Icon(Icons.Default.Home, contentDescription = "Home", tint = MaterialTheme.colorScheme.onPrimary) },
-            label = { Text("Início", color = MaterialTheme.colorScheme.onPrimary) }
+            onClick = {navController!!.navigate(route = "home")},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            label = {
+                Text(text = "Início",
+                    color = MaterialTheme.colorScheme.onPrimary)
+            }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { navController?.navigate("mapa") },
-            icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa", tint = MaterialTheme.colorScheme.onPrimary) },
-            label = { Text("Mapa", color = MaterialTheme.colorScheme.onPrimary) }
+            onClick = {navController!!.navigate(route = "mapa")},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Mapa",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            label = {
+                Text(text = "Mapa",
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { navController?.navigate("perfil") },
-            icon = { Icon(Icons.Default.Person, contentDescription = "Perfil", tint = MaterialTheme.colorScheme.onPrimary) },
-            label = { Text("Perfil", color = MaterialTheme.colorScheme.onPrimary) }
+            onClick = {navController!!.navigate(route = "perfil")},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Perfil",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            label = {
+                Text(text = "Perfil",
+                    color = MaterialTheme.colorScheme.onPrimary)
+            }
         )
     }
+
 }
 
 
 
 @Composable
-fun CartaoUnidade( nomeUnidade: String,
-                   mapView: MapView?,
-                   unidadeGeoMap: Map<String, GeoPoint>) {
+fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude, mapView: MapView?, unidadeGeoMap: Map<String, GeoPoint>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -407,43 +436,36 @@ fun CartaoUnidade( nomeUnidade: String,
             .padding(16.dp)
             .clickable {
                 // centraliza a unidade no mapa ao clicar
-                unidadeGeoMap[nomeUnidade]?.let { geo ->
+                unidadeGeoMap[unidade.nome]?.let { geo ->
                     mapView?.controller?.animateTo(geo)
                     mapView?.controller?.setZoom(18.0)
                 }
             }
         ) {
-            Text(
-                text = nomeUnidade,
-                style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF123B6D)
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = "Ícone de localização",
-                        tint = Color(0xFF123B6D)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                }
-                Button(
-                    onClick = { /* ação de saber mais */ },
-                    shape = RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF298BE6))
-                ) {
-                    Text("Saber mais", color = Color.White)
-                }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.LocationOn,
+                    contentDescription = "Ícone de localização",
+                    tint = Color(0xFF123B6D)
+                )
+                Spacer(Modifier.width(4.dp))
             }
+            Button(
+                onClick = {
+                    Log.d("NAV_TESTE", "Clicou em Saber mais da unidade: ${unidade.id}")
+                    navController.navigate("unidadePublica/${unidade.id}")
+                },
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF298BE6))
+            ) {
+                Text("Saber mais", color = Color.White)
+            }
+
+
         }
     }
+}
 
-// ------- PREVIEWS -------
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun HomeMapaPreview() {
