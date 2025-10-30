@@ -23,7 +23,7 @@ import com.google.gson.reflect.TypeToken
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "mapanav") {
+    NavHost(navController = navController, startDestination = "home") {
         composable("login") { TelaLogin(navController) }
         composable("home") { HomeScreen(navController) }
         composable("mapa") { TelaMapa(navController) }

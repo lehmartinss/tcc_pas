@@ -20,9 +20,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
@@ -62,9 +64,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
@@ -116,16 +120,16 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
     var isLoading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    // 🛰️ FUSED → cria o cliente de localização
+    // cria o cliente de localização
     val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // 🧩 PERMISSÃO → controla se o usuário já deu acesso à localização
+    //controla se o usuário já deu acesso à localização
     val locationPermissionGranted = remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted -> locationPermissionGranted.value = granted }
 
-    // 🧩 PERMISSÃO → pede permissão assim que o composable é carregado
+    // pede permissão assim que o composable é carregado
     LaunchedEffect(Unit) {
         val granted = ContextCompat.checkSelfPermission(
             context,
@@ -147,7 +151,7 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
                         scope.launch {
                             isLoading = true
 
-                            // 🔹 Primeiro, carrega a localização do usuário
+                            // carrega a localização do usuário
                             val response = api.buscarPorCoord(loc.latitude, loc.longitude)
                             val item = response.body()
                             if (item != null) {
@@ -157,7 +161,7 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
                                 mapView?.controller?.setCenter(geoPoint)
                             }
 
-                            // 🔹 Depois, se houver unidades, mostra a PRIMEIRA no mapa
+                            // se houver unidades, mostra a PRIMEIRA no mapa
                             if (unidades.isNotEmpty()) {
 
                                 var primeiraUnidadeCentralizada = false // pra centralizar só uma vez
@@ -180,13 +184,13 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
                                             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                                             marker.title = unidade.nome
 
-                                            // Adiciona o marcador ao mapa (sem recriar)
+                                            // adiciona o marcador ao mapa (sem recriar)
                                             mapView?.overlays?.add(marker)
 
                                             // **preenche o cache**
                                             unidadeGeoMap[unidade.nome] = geoPoint
 
-                                            // Centraliza no primeiro marcador válido
+                                            // centraliza no primeiro marcador válido
                                             if (!primeiraUnidadeCentralizada) {
                                                 mapView?.controller?.setZoom(18.0)
                                                 mapView?.controller?.setCenter(geoPoint)
@@ -204,7 +208,7 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
                                     }
                                 }
 
-                                // Atualiza o mapa depois de adicionar tudo
+                                // atualiza o mapa depois de adicionar tudo
                                 mapView?.invalidate()
                             }
 
@@ -434,37 +438,84 @@ fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude, map
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFFEAF2FB), RoundedCornerShape(16.dp))
-            .padding(16.dp)
+            .padding(9.dp)
             .clickable {
-                // centraliza a unidade no mapa ao clicar
+                // Centraliza a unidade no mapa ao clicar
                 unidadeGeoMap[unidade.nome]?.let { geo ->
                     mapView?.controller?.animateTo(geo)
                     mapView?.controller?.setZoom(18.0)
                 }
             }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.LocationOn,
-                    contentDescription = "Ícone de localização",
-                    tint = Color(0xFF123B6D)
+            // 🔹 Coluna com nome + tempo de espera
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = unidade.nome,
+                    color = Color(0xFF298BE6),
+                    fontWeight = FontWeight.Light,
+                    fontSize = 16.sp
                 )
-                Spacer(Modifier.width(4.dp))
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // 🔹 Linha com ícone + tempo de espera
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccessTime,
+                        contentDescription = "Tempo de espera",
+                        tint = Color(0xFF123B6D),
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    // 🔹 Coluna com título e valor do tempo de espera
+                    Column {
+                        Text(
+                            text = "Tempo de espera",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp
+                        )
+                        Text(
+                            text = unidade.tempo_espera_geral ?: "N/A",
+                            color = Color(0xFF123B6D),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+
             }
+
             Button(
                 onClick = {
                     Log.d("NAV_TESTE", "Clicou em Saber mais da unidade: ${unidade.id}")
                     navController.navigate("unidadePublica/${unidade.id}")
                 },
                 shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF298BE6))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF154B8A))
             ) {
-                Text("Saber mais", color = Color.White)
+                Text("Saber mais",
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
             }
-
-
         }
     }
+}
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable

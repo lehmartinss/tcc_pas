@@ -7,7 +7,8 @@ data class FiltrarUnidadesResponse(
     val status: Boolean,
     val status_code: Int,
     val item: Int,
-    val unidadesDeSaude: List<UnidadeDeSaude>
+    val unidadesDeSaude: List<List<UnidadeDeSaude>>
+//    val unidadesDeSaude: List<UnidadeDeSaude>
 )
 
 data class Filtros(
