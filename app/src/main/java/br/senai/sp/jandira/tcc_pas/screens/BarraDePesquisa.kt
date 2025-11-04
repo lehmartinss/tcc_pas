@@ -190,8 +190,8 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 10.dp, vertical = 12.dp)
+                .height(65.dp)
+                .padding(horizontal = 15.dp, vertical = 12.dp)
                 .background(Color(0xFF298BE6), RoundedCornerShape(38))
                 .zIndex(10f),
             contentAlignment = Alignment.CenterStart
@@ -415,21 +415,27 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                             scope.launch(Dispatchers.IO) {
                                 val response = apiFiltrar.filtrarUnidades(filtros)
                                 if (response.isSuccessful && response.body() != null) {
-                                    val todasUnidades = response.body()!!.unidadesDeSaude
+
+                                    // 🔹 Achata a lista de listas em uma só
+                                    val todasUnidades = response.body()!!.unidadesDeSaude.flatten()
+
                                     val unidadesFiltradas = todasUnidades.filter { unidade ->
                                         val categoriaOk = filtros.categoria?.let { selCategoria ->
                                             unidade.categoria.categoria?.any { cat -> cat.nome == selCategoria } ?: false
                                         } ?: true
+
                                         val especialidadeOk = filtros.especialidade?.let { selEspecialidade ->
                                             unidade.especialidades.especialidades.any { esp -> esp.nome == selEspecialidade }
                                         } ?: true
+
                                         val disponibilidadeOk = filtros.disponibilidade24h?.let { selDisp ->
                                             unidade.disponibilidade_24h == selDisp
                                         } ?: true
+
                                         categoriaOk && especialidadeOk && disponibilidadeOk
                                     }
 
-                                    withContext(Dispatchers.Main) {
+                            withContext(Dispatchers.Main) {
                                         navController.navigate("mapafiltrado") { launchSingleTop = true }
                                         navController.getBackStackEntry("mapafiltrado")
                                             .savedStateHandle["unidadesFiltradas"] = unidadesFiltradas
