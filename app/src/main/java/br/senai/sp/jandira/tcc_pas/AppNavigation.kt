@@ -1,5 +1,6 @@
 package br.senai.sp.jandira.tcc_pas
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost

@@ -498,7 +498,6 @@ fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude, map
                 }
 
             }
-
             Button(
                 onClick = {
                     Log.d("NAV_TESTE", "Clicou em Saber mais da unidade: ${unidade.id}")

@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,7 +49,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -158,9 +164,9 @@ fun TelaInformacaoUnidade(
         try {
             val response = apiUnidade.getUnidadePorId(id)
             if (response.isSuccessful) {
-                val unidadeResponse = response.body()?.unidadeDeSaude
+                val unidadeResponse = response.body()?.unidadesDeSaude?.firstOrNull()
+
                 if (unidadeResponse != null) {
-                    // Atualiza o estado com a unidade
                     unidade = unidadeResponse
                     Log.d("INFO_UNIDADE", "✅ Unidade carregada: ${unidade?.nome}")
                 } else {
@@ -183,65 +189,74 @@ fun TelaInformacaoUnidade(
             .padding(paddingValues),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 🔹 Card azul placeholder da foto
         item {
             Spacer(modifier = Modifier.height(32.dp))
             Card(
                 modifier = Modifier
-                    .size(width = 200.dp, height = 180.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF56A2D5)),
+                    .size(width = 350.dp, height = 220.dp)
+                    .border(1.5.dp, Color(0xFF1E5FA3), RoundedCornerShape(12.dp)) // 🔹 Borda fina azul
+                    .shadow(
+                        elevation = 20.dp, // 🔹 Intensidade da sombra (aumente se quiser mais destaque)
+                        shape = RoundedCornerShape(12.dp),
+                        clip = false, // 🔹 Mantém a sombra para fora da borda
+                        ambientColor = Color.Black.copy(alpha = 0.25f),
+                        spotColor = Color.Black.copy(alpha = 0.35f)
+                    ),
                 shape = RoundedCornerShape(12.dp),
-//                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Text(
-                        text = "Foto da unidade",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                    AsyncImage(
+                        model = unidade?.foto,
+                        contentDescription = "Foto da unidade",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
         }
+
         // nome
         item {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
             Text(
                 text = unidade?.nome ?: "-",
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF1E5FA3),
                 textAlign = TextAlign.Start
             )
         }
         // tempo de espera
         item {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
             Text(
                 text = "Tempo de espera",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF0B2A46),
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = unidade?.tempo_espera_geral ?: "Tempo de espera não disponível ",
-                fontSize = 28.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = Color(0xFF1E5FA3),
                 textAlign = TextAlign.Center
             )
         }
-        //     🔹 Divider
+
         item {
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 thickness = 1.dp,
-                color = Color.LightGray
+                color = Color(0xFF7FBEF8)
             )
         }
         // 🔹 Tipo da unidade
@@ -256,16 +271,17 @@ fun TelaInformacaoUnidade(
                 Image(
                     painter = painterResource(id = R.drawable.tipo),
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
+                    modifier = Modifier.size(20.dp),
+                    colorFilter = ColorFilter.tint(Color(0xFF0B2A46))
+                    )
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
                 Text(
                   text = unidade?.categoria?.categoria?.get(0)?.nome ?: "Nenhuma categoria disponível",
                   fontSize = 16.sp,
                   fontWeight = FontWeight.Bold,
-                  color = Color(0xFF298BE6)
+                  color = Color(0xFF1E5FA3)
                 )
             }
         }
@@ -281,9 +297,10 @@ fun TelaInformacaoUnidade(
                 Image(
                     painter = painterResource(id = R.drawable.endereco),
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
+                    colorFilter = ColorFilter.tint(Color(0xFF0B2A46))
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 val endereco = unidade?.local?.endereco?.get(0)
                 val enderecoTexto = if (endereco != null) {
                     "${endereco.logradouro} - ${endereco.estado} , ${endereco.cidade}"
@@ -295,7 +312,7 @@ fun TelaInformacaoUnidade(
                     text = enderecoTexto,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF298BE6)
+                    color = Color(0xFF1E5FA3)
                 )
             }
         }
@@ -311,16 +328,19 @@ fun TelaInformacaoUnidade(
                 Image(
                     painter = painterResource(id = R.drawable.telefone),
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
+                    colorFilter = ColorFilter.tint(Color(0xFF0B2A46))
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = unidade?.telefone ?: "Nenhum telefone disponível",
                     fontSize = 14.sp,
-                    color = Color(0xFF298BE6)
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1E5FA3)
                 )
             }
         }
+
         item {
             Spacer(modifier = Modifier.height(26.dp))
 
@@ -329,7 +349,7 @@ fun TelaInformacaoUnidade(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .clickable { expandir = !expandir },
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF7FBEF8)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xff1E5FA3)),
                 shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
@@ -354,7 +374,7 @@ fun TelaInformacaoUnidade(
                     }
                 }
                 AnimatedVisibility(visible = expandir) {
-                    Column(modifier = Modifier.padding(top = 12.dp)) {
+                    Column(modifier = Modifier.padding(top = 10.dp)) {
                         val lista = unidade?.especialidades?.especialidades ?: emptyList()
                         if (lista.isEmpty()) {
                             Text(
@@ -367,26 +387,34 @@ fun TelaInformacaoUnidade(
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 6.dp)
-                                        .background(Color(0xFFEAF2FB), RoundedCornerShape(12.dp))
-                                        .padding(10.dp)
+                                        .padding(start = 8.dp)
                                 ) {
                                     Text(
                                         text = especialidade.nome,
                                         fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = Color.White
+                                    )
+
+                                    Spacer(modifier = Modifier.height(2.dp))
+
+                                    Text(
+                                        text = "Tempo de espera: ${unidade?.tempo_espera ?: "-"}",
                                         fontSize = 15.sp,
-                                        color = Color(0xFF123B6D)
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.White
                                     )
 
                                     Spacer(modifier = Modifier.height(4.dp))
 
-                                    Text(
-                                        text = "Tempo de espera: ${unidade?.tempo_espera_geral ?: "-"}",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF123B6D)
+                                    // 🔹 Linha divisória
+                                    Divider(
+                                        color = Color(0xFFB0C4DE), // tom de azul claro, combina com o layout
+                                        thickness = 1.dp,
+                                        modifier = Modifier.padding(start = 6.dp, end = 8.dp)
                                     )
                                 }
+
 
                             }
                         }

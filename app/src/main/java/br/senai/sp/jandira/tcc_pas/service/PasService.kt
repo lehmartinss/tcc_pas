@@ -50,8 +50,7 @@ interface PasService {
 //    suspend fun getUnidadePorId(@Path("id") id: Int): Response<UnidadeDeSaudeResponse>
 
     @GET("v1/pas/unidades/{id}")
-    suspend fun getUnidadePorId(@Path("id") id: Int): Response<UnidadePorIdResponse>
-
+    suspend fun getUnidadePorId(@Path("id") id: Int):   Response<UnidadePorIdResponse>
 
     // Open Street Map
 

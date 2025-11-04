@@ -8,8 +8,8 @@ data class FiltrarUnidadesResponse(
     val status_code: Int,
     val item: Int,
     val unidadesDeSaude: List<List<UnidadeDeSaude>>
-//    val unidadesDeSaude: List<UnidadeDeSaude>
 )
+
 
 data class Filtros(
     val categoria: String?,
@@ -26,6 +26,7 @@ data class UnidadeDeSaude(
     val foto: String?,
     val local: LocalWrapper,
     val tempo_espera_geral: String?,
+    val tempo_espera: String?,
     val categoria: CategoriaWrapper,
     val especialidades: EspecialidadesWrapper
 )
@@ -34,7 +35,7 @@ data class UnidadePorIdResponse(
     val status: Boolean,
     val status_code: Int,
     val item: Int,
-    val unidadeDeSaude: UnidadeDeSaude
+    val unidadesDeSaude: List<UnidadeDeSaude>
 )
 
 
