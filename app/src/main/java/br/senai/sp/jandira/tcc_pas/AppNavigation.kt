@@ -1,6 +1,7 @@
 package br.senai.sp.jandira.tcc_pas
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,16 +17,25 @@ import br.senai.sp.jandira.tcc_pas.screens.HomeScreen
 import br.senai.sp.jandira.tcc_pas.screens.TelaDescricacaoCampanhas
 import br.senai.sp.jandira.tcc_pas.screens.TelaLogin
 import br.senai.sp.jandira.tcc_pas.screens.TelaMapa
+import br.senai.sp.jandira.tcc_pas.screens.TelaMapaNavBar
+import br.senai.sp.jandira.tcc_pas.screens.TelaPerfil
+import br.senai.sp.jandira.tcc_pas.viewmodel.UserViewModel
 import com.google.gson.reflect.TypeToken
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
-        composable("login") { TelaLogin(navController) }
+    // Crie o ViewModel aqui, uma única vez!
+    val userViewModel: UserViewModel = viewModel()
+
+
+    NavHost(navController = navController, startDestination = "perfil") {
+        composable("login") { TelaLogin(navController, userViewModel) }
         composable("home") { HomeScreen(navController) }
         composable("mapa") { TelaMapa(navController) }
+        composable("mapanav") { TelaMapaNavBar(navController) }
+        composable("perfil") { TelaPerfil(navController, userViewModel) }
         composable(
             "campanha/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType })

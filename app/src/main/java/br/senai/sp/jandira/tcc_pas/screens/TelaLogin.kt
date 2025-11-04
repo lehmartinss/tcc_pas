@@ -1,8 +1,10 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -57,14 +59,17 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.Login
+import br.senai.sp.jandira.tcc_pas.model.LoginResponse
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactory
+import br.senai.sp.jandira.tcc_pas.viewmodel.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-
+import androidx.core.net.toUri
 
 
 // FAZ A FORMATACAO DOS NUMEROS DIGITADO PELO USUARIO SER UM CPF
@@ -104,8 +109,9 @@ class CpfVisualTransformation : VisualTransformation {
 }
 
 
+@SuppressLint("UseKtx")
 @Composable
-fun TelaLogin(navController: NavHostController?) {
+fun TelaLogin(navController: NavHostController?, userViewModel: UserViewModel) {
     var cpf = remember { mutableStateOf("") }
     var senha = remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -327,6 +333,11 @@ fun TelaLogin(navController: NavHostController?) {
                                 if (response.isSuccessful) {
                                     val body = response.body()
                                     if (body != null) {
+
+                                        userViewModel.setUser(body)
+
+                                        Log.e("USERDATA", "${userViewModel.userData}")
+
                                         mostrarTelaSucesso = true
                                     } else {
                                         mostrarTelaErro = true
@@ -431,7 +442,7 @@ fun TelaLogin(navController: NavHostController?) {
                         onClick = {
                             val intent = Intent(
                                 Intent.ACTION_VIEW,
-                                Uri.parse("https://sso.acesso.gov.br/login?client_id=portal-logado.estaleiro.serpro.gov.br&authorization_id=19952c0de59")
+                                "https://sso.acesso.gov.br/login?client_id=portal-logado.estaleiro.serpro.gov.br&authorization_id=19952c0de59".toUri()
                             )
                             context.startActivity(intent)
                         },
@@ -453,11 +464,11 @@ fun TelaLogin(navController: NavHostController?) {
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Composable
-private fun TelaLoginPreview() {
-    TelaLogin(null)
-}
-
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+//@Composable
+//private fun TelaLoginPreview() {
+//    TelaLogin(null)
+//}
+//
 
 
