@@ -157,6 +157,7 @@ fun HomeScreen(navController: NavHostController) {
                         val marker = org.osmdroid.views.overlay.Marker(mapView)
                         marker.position = GeoPoint(latitude, longitude)
                         marker.title = "Você está aqui"
+                        marker.icon = ContextCompat.getDrawable(context, R.drawable.marker)
                         marker.setAnchor(
                             org.osmdroid.views.overlay.Marker.ANCHOR_CENTER,
                             org.osmdroid.views.overlay.Marker.ANCHOR_BOTTOM
