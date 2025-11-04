@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -349,7 +350,7 @@ fun TelaInformacaoUnidade(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .clickable { expandir = !expandir },
-                colors = CardDefaults.cardColors(containerColor = Color(0xff1E5FA3)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF298BE6)),
                 shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
@@ -383,40 +384,63 @@ fun TelaInformacaoUnidade(
                                 fontSize = 14.sp
                             )
                         } else {
-                            lista.forEach { especialidade ->
+                            lista.forEachIndexed { index, especialidade ->
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(start = 8.dp)
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
                                 ) {
+                                    // 🔹 Nome da especialidade
                                     Text(
                                         text = especialidade.nome,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp,
+                                        fontSize = 18.sp, // maior destaque
                                         color = Color.White
                                     )
 
-                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Spacer(modifier = Modifier.height(6.dp))
 
-                                    Text(
-                                        text = "Tempo de espera: ${unidade?.tempo_espera ?: "-"}",
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color.White
-                                    )
+                                    // 🔹 Ícone + tempo de espera
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.AccessTime, // ícone de relógio
+                                            contentDescription = "Tempo de espera",
+                                            tint = Color(0xff1E5FA3), // azul claro para contraste
+                                            modifier = Modifier.size(20.dp)
+                                        )
 
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
 
-                                    // 🔹 Linha divisória
-                                    Divider(
-                                        color = Color(0xFFB0C4DE), // tom de azul claro, combina com o layout
-                                        thickness = 1.dp,
-                                        modifier = Modifier.padding(start = 6.dp, end = 8.dp)
-                                    )
+                                        Text(
+                                            text = "Tempo de espera",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFFEAF2FB)
+                                        )
+
+                                        Text(
+                                            text = unidade?.tempo_espera ?: "-",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFFEAF2FB)
+                                        )
+                                    }
+
+                                    // 🔹 Linha divisória (exceto no último)
+                                    if (index < lista.lastIndex) {
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Divider(
+                                            color = Color(0x66B0C4DE), // com leve transparência (~40%)
+                                            thickness = 1.dp,
+                                            modifier = Modifier.padding(horizontal = 5.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                    }
                                 }
-
-
                             }
+
                         }
                     }
                 }

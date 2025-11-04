@@ -101,7 +101,6 @@ import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 import kotlin.collections.orEmpty
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraDePesquisaComFiltros(navController: NavHostController) {
@@ -435,7 +434,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                                         categoriaOk && especialidadeOk && disponibilidadeOk
                                     }
 
-                            withContext(Dispatchers.Main) {
+                                    withContext(Dispatchers.Main) {
                                         navController.navigate("mapafiltrado") { launchSingleTop = true }
                                         navController.getBackStackEntry("mapafiltrado")
                                             .savedStateHandle["unidadesFiltradas"] = unidadesFiltradas
@@ -469,159 +468,159 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
 
 // funcao para transformar a informacao de disponibilidade, pois no back ele recebe 0 e 1
 fun disponibilidadeParaInt(valor: String?): Int? {
-        return when (valor) {
-            "Sim" -> 1
-            "Não" -> 0
-            else -> null
-        }
+    return when (valor) {
+        "Sim" -> 1
+        "Não" -> 0
+        else -> null
+    }
 }
 
 
 // funcao para puxar os icons que vem da api em cada filtro
-    @Composable
-    fun FiltroSingleSelectComFoto(
-        titulo: String,
-        lista: List<ItemComFoto>,
-        selecionado: String?,
-        onSelect: (String?) -> Unit,
-        icone: Int
-    ) {
-        var mostrar by remember { mutableStateOf(false) }
+@Composable
+fun FiltroSingleSelectComFoto(
+    titulo: String,
+    lista: List<ItemComFoto>,
+    selecionado: String?,
+    onSelect: (String?) -> Unit,
+    icone: Int
+) {
+    var mostrar by remember { mutableStateOf(false) }
 
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
+        ) {
+            Image(
+                painter = painterResource(icone),
+                contentDescription = titulo,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
-            ) {
-                Image(
-                    painter = painterResource(icone),
-                    contentDescription = titulo,
-                    modifier = Modifier
-                        .size(25.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
+                    .size(25.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(titulo, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = { mostrar = !mostrar }) {
+                Icon(
+                    imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
                 )
-
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(titulo, style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { mostrar = !mostrar }) {
-                    Icon(
-                        imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null
-                    )
-                }
             }
+        }
 
-            if (mostrar) {
-                lista.forEach { item ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(if (selecionado == item.nome) null else item.nome) }
-                            .padding(horizontal = 24.dp, vertical = 10.dp)
-                    ) {
+        if (mostrar) {
+            lista.forEach { item ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(if (selecionado == item.nome) null else item.nome) }
+                        .padding(horizontal = 24.dp, vertical = 10.dp)
+                ) {
 
-                        item.fotoClaro?.let { fotoUrl ->
-                            AsyncImage(
-                                model = fotoUrl,
-                                contentDescription = item.nome,
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-
-                        Text(
-                            text = item.nome,
-                            color = if (selecionado == item.nome) Color(0xFF7FBEF8) else Color.Black,
-                            fontWeight = if (selecionado == item.nome) FontWeight.Bold else FontWeight.Normal
+                    item.fotoClaro?.let { fotoUrl ->
+                        AsyncImage(
+                            model = fotoUrl,
+                            contentDescription = item.nome,
+                            modifier = Modifier
+                                .size(15.dp)
+                                .clip(RoundedCornerShape(6.dp))
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
+
+                    Text(
+                        text = item.nome,
+                        color = if (selecionado == item.nome) Color(0xFF7FBEF8) else Color.Black,
+                        fontWeight = if (selecionado == item.nome) FontWeight.Bold else FontWeight.Normal
+                    )
                 }
             }
         }
     }
+}
 
 // funcao para puxar os icons que nao vem da api em disponibilidade, os icons aqui foi colocado manualmente
-    @Composable
-    fun FiltroSingleSelect(
-        titulo: String,
-        lista: List<String>,
-        selecionado: String?,
-        onSelect: (String?) -> Unit,
-        icone: Int
-    ) {
-        var mostrar by remember { mutableStateOf(false) }
+@Composable
+fun FiltroSingleSelect(
+    titulo: String,
+    lista: List<String>,
+    selecionado: String?,
+    onSelect: (String?) -> Unit,
+    icone: Int
+) {
+    var mostrar by remember { mutableStateOf(false) }
 
-        Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
 
-            // 🔹 Cabeçalho (com imagem e seta)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+        // 🔹 Cabeçalho (com imagem e seta)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
+        ) {
+            Image(
+                painter = painterResource(id = icone),
+                contentDescription = titulo,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = icone),
-                    contentDescription = titulo,
-                    modifier = Modifier
-                        .size(25.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
+                    .size(25.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(titulo, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = { mostrar = !mostrar }) {
+                Icon(
+                    imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
                 )
-
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(titulo, style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { mostrar = !mostrar }) {
-                    Icon(
-                        imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null
-                    )
-                }
             }
+        }
 
-            if (mostrar) {
-                lista.forEach { item ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(if (selecionado == item) null else item) }
-                            .padding(horizontal = 24.dp, vertical = 10.dp)
-                    ) {
-                        // 🖼️ Define imagem com base no item
-                        val imagem = when (item) {
-                            "Sim" -> R.drawable.sim
-                            "Não" -> R.drawable.nao
-                            else -> null
-                        }
-
-                        imagem?.let {
-                            Image(
-                                painter = painterResource(id = imagem),
-                                contentDescription = item,
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .clip(RoundedCornerShape(6.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-
-                        Text(
-                            text = item,
-                            color = if (selecionado == item) Color(0xFF7FBEF8) else Color.Black,
-                            fontWeight = if (selecionado == item) FontWeight.Bold else FontWeight.Normal
-                        )
+        if (mostrar) {
+            lista.forEach { item ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(if (selecionado == item) null else item) }
+                        .padding(horizontal = 24.dp, vertical = 10.dp)
+                ) {
+                    // 🖼️ Define imagem com base no item
+                    val imagem = when (item) {
+                        "Sim" -> R.drawable.sim
+                        "Não" -> R.drawable.nao
+                        else -> null
                     }
+
+                    imagem?.let {
+                        Image(
+                            painter = painterResource(id = imagem),
+                            contentDescription = item,
+                            modifier = Modifier
+                                .size(15.dp)
+                                .clip(RoundedCornerShape(6.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    Text(
+                        text = item,
+                        color = if (selecionado == item) Color(0xFF7FBEF8) else Color.Black,
+                        fontWeight = if (selecionado == item) FontWeight.Bold else FontWeight.Normal
+                    )
                 }
             }
         }
     }
+}
