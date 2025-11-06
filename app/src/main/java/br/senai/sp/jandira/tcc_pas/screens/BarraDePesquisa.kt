@@ -417,7 +417,6 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                                 val response = apiFiltrar.filtrarUnidades(filtros)
                                 if (response.isSuccessful && response.body() != null) {
 
-                                    // 🔹 Achata a lista de listas em uma só
                                     val todasUnidades = response.body()!!.unidadesDeSaude.flatten()
 
                                     val unidadesFiltradas = todasUnidades.filter { unidade ->
@@ -561,7 +560,6 @@ fun FiltroSingleSelect(
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
-        // 🔹 Cabeçalho (com imagem e seta)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -597,7 +595,6 @@ fun FiltroSingleSelect(
                         .clickable { onSelect(if (selecionado == item) null else item) }
                         .padding(horizontal = 24.dp, vertical = 10.dp)
                 ) {
-                    // 🖼️ Define imagem com base no item
                     val imagem = when (item) {
                         "Sim" -> R.drawable.sim
                         "Não" -> R.drawable.nao

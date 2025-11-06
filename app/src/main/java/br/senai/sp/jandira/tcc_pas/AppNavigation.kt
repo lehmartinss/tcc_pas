@@ -18,6 +18,8 @@ import br.senai.sp.jandira.tcc_pas.screens.TelaDescricacaoCampanhas
 import br.senai.sp.jandira.tcc_pas.screens.TelaLogin
 import br.senai.sp.jandira.tcc_pas.screens.TelaMapa
 import br.senai.sp.jandira.tcc_pas.screens.TelaMapaNavBar
+import br.senai.sp.jandira.tcc_pas.screens.TelaSobre
+import br.senai.sp.jandira.tcc_pas.screens.TelaTermosDeUso
 import com.google.gson.reflect.TypeToken
 
 @Composable
@@ -51,6 +53,7 @@ fun AppNavigation() {
             val id = backStackEntry.arguments?.getInt("id") ?: 0
             HomeInformacaoUnidade(navController, id)
         }
-
+        composable("termos") { TelaTermosDeUso(navController) }
+        composable("sobre") { TelaSobre(navController) }
     }
 }

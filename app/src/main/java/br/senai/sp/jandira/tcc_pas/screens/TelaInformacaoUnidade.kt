@@ -161,7 +161,7 @@ fun TelaInformacaoUnidade(
     id: Int,
     navController: NavHostController
 ) {
-    var unidade by remember { mutableStateOf<UnidadeDeSaude?>(null) } // Estado da unidade
+    var unidade by remember { mutableStateOf<UnidadeDeSaude?>(null) }
     val apiUnidade = RetrofitFactoryFiltrar().getUnidadesService()
     var expandir by remember { mutableStateOf(false) }
 
@@ -173,15 +173,9 @@ fun TelaInformacaoUnidade(
 
                 if (unidadeResponse != null) {
                     unidade = unidadeResponse
-                    Log.d("INFO_UNIDADE", "✅ Unidade carregada: ${unidade?.nome}")
-                } else {
-                    Log.e("INFO_UNIDADE", "❌ Unidade não encontrada.")
                 }
-            } else {
-                Log.e("INFO_UNIDADE", "❌ Erro ${response.code()} - ${response.message()}")
             }
         } catch (e: Exception) {
-            Log.e("INFO_UNIDADE", "🚨 Erro ao buscar unidade: ${e.message}")
         }
     }
 
@@ -192,7 +186,7 @@ fun TelaInformacaoUnidade(
             .fillMaxSize()
             .background(Color(0xffF9FAFB))
             .padding(paddingValues)
-            .navigationBarsPadding() // respeita a barra de navegação
+            .navigationBarsPadding()
             .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -201,11 +195,11 @@ fun TelaInformacaoUnidade(
             Card(
                 modifier = Modifier
                     .size(width = 350.dp, height = 220.dp)
-                    .border(1.5.dp, Color(0xFF1E5FA3), RoundedCornerShape(12.dp)) // 🔹 Borda fina azul
+                    .border(1.5.dp, Color(0xFF1E5FA3), RoundedCornerShape(12.dp))
                     .shadow(
-                        elevation = 20.dp, // 🔹 Intensidade da sombra (aumente se quiser mais destaque)
+                        elevation = 20.dp,
                         shape = RoundedCornerShape(12.dp),
-                        clip = false, // 🔹 Mantém a sombra para fora da borda
+                        clip = false,
                         ambientColor = Color.Black.copy(alpha = 0.25f),
                         spotColor = Color.Black.copy(alpha = 0.35f)
                     ),
@@ -266,7 +260,7 @@ fun TelaInformacaoUnidade(
                 color = Color(0xFF7FBEF8)
             )
         }
-        // 🔹 Tipo da unidade
+        // tipo da unidade
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -310,7 +304,7 @@ fun TelaInformacaoUnidade(
                 Spacer(modifier = Modifier.width(10.dp))
                 val endereco = unidade?.local?.endereco?.get(0)
                 val enderecoTexto = if (endereco != null) {
-                    "${endereco.logradouro} - ${endereco.estado} , ${endereco.cidade}"
+                    "${endereco.logradouro} - ${endereco.estado}, ${endereco.cidade}"
                 } else {
                     "Nenhum endereço disponível"
                 }
@@ -323,7 +317,7 @@ fun TelaInformacaoUnidade(
                 )
             }
         }
-        // 🔹 Telefone
+        // telefone
         item {
             Spacer(modifier = Modifier.height(12.dp))
             Row(
@@ -348,6 +342,7 @@ fun TelaInformacaoUnidade(
             }
         }
 
+        // tempo de espera das especialidades
         item {
             Spacer(modifier = Modifier.height(26.dp))
 
@@ -384,7 +379,6 @@ fun TelaInformacaoUnidade(
                     Column(
                         modifier = Modifier
                         .padding(top = 10.dp)
-                            .verticalScroll(rememberScrollState())
                             .navigationBarsPadding()
                     ) {
                         val lista = unidade?.especialidades?.especialidades ?: emptyList()
@@ -401,24 +395,23 @@ fun TelaInformacaoUnidade(
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp, vertical = 8.dp)
                                 ) {
-                                    // 🔹 Nome da especialidade
+
                                     Text(
                                         text = especialidade.nome,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp, // maior destaque
+                                        fontSize = 18.sp,
                                         color = Color.White
                                     )
 
                                     Spacer(modifier = Modifier.height(6.dp))
 
-                                    // 🔹 Ícone + tempo de espera
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.AccessTime, // ícone de relógio
+                                            imageVector = Icons.Default.AccessTime,
                                             contentDescription = "Tempo de espera",
-                                            tint = Color(0xff1E5FA3), // azul claro para contraste
+                                            tint = Color(0xff1E5FA3),
                                             modifier = Modifier.size(20.dp)
                                         )
 
@@ -439,39 +432,29 @@ fun TelaInformacaoUnidade(
                                         )
                                     }
 
-                                    // 🔹 Linha divisória (exceto no último)
                                     if (index < lista.lastIndex) {
-                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Spacer(modifier = Modifier.height(9.dp))
                                         Divider(
-                                            color = Color(0x66B0C4DE), // com leve transparência (~40%)
+                                            color = Color(0x66B0C4DE),
                                             thickness = 1.dp,
                                             modifier = Modifier.padding(horizontal = 5.dp)
                                         )
-                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Spacer(modifier = Modifier.height(9.dp))
                                     }
                                 }
                             }
 
                         }
+
                     }
                 }
-
+                Spacer(modifier = Modifier.height(8.dp))
             }
-
         }
     }
 }
 
 
-
-//        //@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
-//        @Composable
-//        fun HomeInformacaoUnidadePreview() {
-//            Tcc_PasTheme {
-//                val navController = rememberNavController()
-//                HomeInformacaoUnidade(navController = navController, id = 5)
-//            }
-//        }
 
 
 

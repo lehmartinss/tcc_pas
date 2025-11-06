@@ -402,7 +402,7 @@ fun BarraDeNavegacaoMapa(navController: NavHostController?) {
         )
         NavigationBarItem(
             selected = false,
-            onClick = {navController!!.navigate(route = "mapa")},
+            onClick = {navController!!.navigate(route = "mapanav")},
             icon = {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
