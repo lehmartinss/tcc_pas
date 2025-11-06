@@ -16,11 +16,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Home
@@ -187,7 +191,9 @@ fun TelaInformacaoUnidade(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xffF9FAFB))
-            .padding(paddingValues),
+            .padding(paddingValues)
+            .navigationBarsPadding() // respeita a barra de navegação
+            .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
@@ -375,7 +381,12 @@ fun TelaInformacaoUnidade(
                     }
                 }
                 AnimatedVisibility(visible = expandir) {
-                    Column(modifier = Modifier.padding(top = 10.dp)) {
+                    Column(
+                        modifier = Modifier
+                        .padding(top = 10.dp)
+                            .verticalScroll(rememberScrollState())
+                            .navigationBarsPadding()
+                    ) {
                         val lista = unidade?.especialidades?.especialidades ?: emptyList()
                         if (lista.isEmpty()) {
                             Text(
@@ -414,14 +425,14 @@ fun TelaInformacaoUnidade(
                                         Spacer(modifier = Modifier.width(6.dp))
 
                                         Text(
-                                            text = "Tempo de espera",
+                                            text = "Tempo de espera:",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = Color(0xFFEAF2FB)
                                         )
-
+                                        Spacer(modifier = Modifier.width(4.dp))
                                         Text(
-                                            text = unidade?.tempo_espera ?: "-",
+                                            text = especialidade.tempo_espera ?: "-",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = Color(0xFFEAF2FB)

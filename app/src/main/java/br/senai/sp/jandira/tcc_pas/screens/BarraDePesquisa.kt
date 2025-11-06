@@ -168,7 +168,9 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
 
         if (campoFocado || expandirMenu) {
             Box(

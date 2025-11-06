@@ -201,6 +201,14 @@ fun HomeScreen(navController: NavHostController) {
         bottomBar = { BarraDeNavegacaoMapa(navController = navController) }
     ) { paddingValues ->
 
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .zIndex(10f)          // 🔹 Continua acima de tudo
+        ) {
+            BarraDePesquisaComFiltros(navController = navController)
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -231,16 +239,6 @@ fun HomeScreen(navController: NavHostController) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
             }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .zIndex(10f)
-
-            ) {
-                BarraDePesquisaComFiltros(navController = navController)
-            }
-
 
 
             // Card das campanhas
@@ -368,6 +366,7 @@ fun HomeScreen(navController: NavHostController) {
                         }
                     }
                 }
+
             }
         }
     }
@@ -431,7 +430,7 @@ fun BarraDeNavegacao(navController: NavHostController?) {
 
 
 
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 fun HomeScreenPreview() {
     Tcc_PasTheme {
