@@ -1,7 +1,14 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
+// Adicione estas importações no topo do arquivo, se não existirem
+import com.google.android.gms.location.Priority
+
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -46,6 +53,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -68,6 +77,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -78,6 +88,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.Especialidade
@@ -89,22 +100,104 @@ import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltrar
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltrarPorPesquisa
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroEspecialidade
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroUnidade
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryOSM
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import coil.compose.AsyncImage
 import com.google.accompanist.flowlayout.FlowRow
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
 import java.net.URLEncoder
 import kotlin.collections.orEmpty
+import kotlin.math.pow
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraDePesquisaComFiltros(navController: NavHostController) {
+
+
+    // 🧩 PERMISSÃO → controla se o usuário já deu acesso à localização
+    val locationPermissionGranted = remember { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted -> locationPermissionGranted.value = granted }
+
+
+// 🧩 NOVO: State para controlar o valor do slider de distância em km
+    var distanciaSelecionada by remember { mutableStateOf(20f) }
+
+
+    // osmdroid
+    val context = LocalContext.current
+
+    // State para guardar a localização
+    var localizacaoUsuario by remember { mutableStateOf<GeoPoint?>(null) }
+
+    fun calculateDistance(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val R = 6371 // Raio da Terra em km
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2)
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return R * c // Distância em km
+    }
+
+    // FusedLocationProviderClient para obter a localização
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+
+    var mapView: MapView? by remember { mutableStateOf(null) }
+    val scope = rememberCoroutineScope()
+
+    // 🧩 PERMISSÃO E OBTENÇÃO DE LOCALIZAÇÃO → pede permissão e busca a localização
+    LaunchedEffect(locationPermissionGranted.value) { // Executa quando a permissão muda
+        val granted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!granted) {
+            // Se não tem permissão, pede
+            launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            // Se TEM permissão, busca a localização atual
+            locationPermissionGranted.value = true
+
+            // Verificação de segurança para a permissão (exigido pelo Android)
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                // Usando getCurrentLocation para obter uma localização única e precisa
+                fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY,
+                    CancellationTokenSource().token)
+                    .addOnSuccessListener { location ->
+                        if (location != null) {
+                            // Sucesso! Armazena a localização no state
+                            // Corrigido: Usa org.osmdroid.util.GeoPoint
+                            localizacaoUsuario = GeoPoint(location.latitude, location.longitude)
+
+                            Log.d("LocalizacaoUsuario", "Lat: ${location.latitude}, Lont: ${location.longitude}")
+                        } else {
+                            Log.e("LocalizacaoUsuario", "Localização retornou nula.")
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("LocalizacaoUsuario", "Falha ao obter localização: ${e.message}")
+                    }
+            }
+        }
+    }
+
+
+
 
     // menu quando o usuario clica na seta
     var expandirMenu by remember { mutableStateOf(false) }
@@ -116,12 +209,17 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
+    // 🧩 NOVO: State para guardar os resultados BRUTOS da API
+    var resultadosBrutosApi by remember { mutableStateOf<List<UnidadeDeSaude>>(emptyList()) }
+
+// 🧩 NOVO: State para guardar os resultados FILTRADOS que serão exibidos na UI
+    var unidadesFiltradasExibidas by remember { mutableStateOf<List<UnidadeDeSaude>>(emptyList()) }
+
     var especialidadeSelecionada by remember { mutableStateOf<String?>(null) }
     var unidadeSelecionada by remember { mutableStateOf<String?>(null) }
     var disponibilidadeSelecionada by remember { mutableStateOf<String?>(null) }
     var especialidades by remember { mutableStateOf<List<Especialidade>>(emptyList()) }
     var unidades by remember { mutableStateOf<List<Unidade>>(emptyList()) }
-    val scope = rememberCoroutineScope()
 
     // api de filtrar por filtros
     val filtroService = remember { RetrofitFactoryFiltroEspecialidade().getFiltroService() }
@@ -133,6 +231,17 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
 
     var sugestoes by remember { mutableStateOf<List<String>>(emptyList()) }
     var todasSugestoes by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    fun calcularDistancia(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val R = 6371.0 // Raio da Terra em km
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val a = Math.sin(dLat / 2).pow(2.0) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLng / 2).pow(2.0)
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return R * c
+    }
 
     // busca sugestões conforme o usuario digita
     LaunchedEffect(textoPesquisa) {
@@ -323,16 +432,22 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                                                     launchSingleTop = true
                                                 }
                                                 navController.getBackStackEntry("mapafiltrado")
-                                                    .savedStateHandle["unidadesFiltradas"] = unidadesFiltradas
+                                                    .savedStateHandle["unidadesFiltradas"] =
+                                                    unidadesFiltradas
                                             }
                                         }
-                                    } catch (_: Exception) {}
+                                    } catch (_: Exception) {
+                                    }
                                 }
                             }
                         }
                 )
             }
         }
+
+        var sliderPosition by remember { mutableStateOf(0f..100f) }
+
+
 
         // menu de sugestões
         AnimatedVisibility(
@@ -402,6 +517,20 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                         icone = R.drawable.atendimento
                     )
 
+                    var sliderPosition by remember { mutableStateOf(0f) }
+                    val stepSize = 5f
+                    val range = 0f..25f
+                    val steps = ((range.endInclusive - range.start) / stepSize).toInt() - 1
+
+                    Slider(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        value = sliderPosition,
+                        onValueChange = { sliderPosition = it },
+                        valueRange = range,
+                        steps = steps // (100/5) - 1, define os pontos onde o slider "para"
+                    )
+                    Text(text = "Valor selecionado: ${sliderPosition.toInt()}")
+
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
@@ -419,7 +548,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                                     // 🔹 Achata a lista de listas em uma só
                                     val todasUnidades = response.body()!!.unidadesDeSaude.flatten()
 
-                                    val unidadesFiltradas = todasUnidades.filter { unidade ->
+                                    var unidadesFiltradas = todasUnidades.filter { unidade ->
                                         val categoriaOk = filtros.categoria?.let { selCategoria ->
                                             unidade.categoria.categoria?.any { cat -> cat.nome == selCategoria } ?: false
                                         } ?: true
@@ -435,9 +564,73 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                                         categoriaOk && especialidadeOk && disponibilidadeOk
                                     }
 
+                                    // ✅ Filtro por distância (igual à TelaMapa)
+                                    if (localizacaoUsuario != null) {
+                                        val apiOSM = RetrofitFactoryOSM().getOSMService()
+                                        val raioKm = sliderPosition // variável do seu slider de distância
+
+                                        unidadesFiltradas = unidadesFiltradas.filter { unidade ->
+                                            try {
+                                                val cep = unidade.local.endereco.firstOrNull()?.cep ?: return@filter false
+
+                                                val resp = apiOSM.buscarPorCep(cep)
+                                                val lista = resp.body()
+                                                if (lista.isNullOrEmpty()) return@filter false
+
+                                                val geo = lista.first()
+                                                val lat = geo.lat.toDouble()
+                                                val lon = geo.lon.toDouble()
+
+                                                val distancia = calcularDistancia(
+                                                    localizacaoUsuario!!.latitude,
+                                                    localizacaoUsuario!!.longitude,
+                                                    lat,
+                                                    lon
+                                                )
+
+                                                distancia <= raioKm
+                                            } catch (e: Exception) {
+                                                Log.e("FILTRO_DISTANCIA", "Erro ao calcular distância: ${e.message}")
+                                                false
+                                            }
+                                        }
+                                    }
+
+                                    // ✅ Filtro por distância (igual à TelaMapa)
+                                    if (localizacaoUsuario != null) {
+                                        val apiOSM = RetrofitFactoryOSM().getOSMService()
+                                        val raioKm = sliderPosition // variável do seu slider de distância
+
+                                        unidadesFiltradas = unidadesFiltradas.filter { unidade ->
+                                            try {
+                                                val cep = unidade.local.endereco.firstOrNull()?.cep ?: return@filter false
+
+                                                val resp = apiOSM.buscarPorCep(cep)
+                                                val lista = resp.body()
+                                                if (lista.isNullOrEmpty()) return@filter false
+
+                                                val geo = lista.first()
+                                                val lat = geo.lat.toDouble()
+                                                val lon = geo.lon.toDouble()
+
+                                                val distancia = calcularDistancia(
+                                                    localizacaoUsuario!!.latitude,
+                                                    localizacaoUsuario!!.longitude,
+                                                    lat,
+                                                    lon
+                                                )
+
+                                                distancia <= raioKm
+                                            } catch (e: Exception) {
+                                                Log.e("FILTRO_DISTANCIA", "Erro ao calcular distância: ${e.message}")
+                                                false
+                                            }
+                                        }
+                                    }
 
 
-                            withContext(Dispatchers.Main) {
+
+                                    withContext(Dispatchers.Main) {
                                         navController.navigate("mapafiltrado") { launchSingleTop = true }
                                         navController.getBackStackEntry("mapafiltrado")
                                             .savedStateHandle["unidadesFiltradas"] = unidadesFiltradas
@@ -471,159 +664,160 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
 
 // funcao para transformar a informacao de disponibilidade, pois no back ele recebe 0 e 1
 fun disponibilidadeParaInt(valor: String?): Int? {
-        return when (valor) {
-            "Sim" -> 1
-            "Não" -> 0
-            else -> null
-        }
+    return when (valor) {
+        "Sim" -> 1
+        "Não" -> 0
+        else -> null
+    }
 }
 
 
 // funcao para puxar os icons que vem da api em cada filtro
-    @Composable
-    fun FiltroSingleSelectComFoto(
-        titulo: String,
-        lista: List<ItemComFoto>,
-        selecionado: String?,
-        onSelect: (String?) -> Unit,
-        icone: Int
-    ) {
-        var mostrar by remember { mutableStateOf(false) }
+@Composable
+fun FiltroSingleSelectComFoto(
+    titulo: String,
+    lista: List<ItemComFoto>,
+    selecionado: String?,
+    onSelect: (String?) -> Unit,
+    icone: Int
+) {
+    var mostrar by remember { mutableStateOf(false) }
 
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
+        ) {
+            Image(
+                painter = painterResource(icone),
+                contentDescription = titulo,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
-            ) {
-                Image(
-                    painter = painterResource(icone),
-                    contentDescription = titulo,
-                    modifier = Modifier
-                        .size(25.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
+                    .size(25.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(titulo, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = { mostrar = !mostrar }) {
+                Icon(
+                    imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
                 )
-
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(titulo, style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { mostrar = !mostrar }) {
-                    Icon(
-                        imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null
-                    )
-                }
             }
+        }
 
-            if (mostrar) {
-                lista.forEach { item ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(if (selecionado == item.nome) null else item.nome) }
-                            .padding(horizontal = 24.dp, vertical = 10.dp)
-                    ) {
+        if (mostrar) {
+            lista.forEach { item ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(if (selecionado == item.nome) null else item.nome) }
+                        .padding(horizontal = 24.dp, vertical = 10.dp)
+                ) {
 
-                        item.fotoClaro?.let { fotoUrl ->
-                            AsyncImage(
-                                model = fotoUrl,
-                                contentDescription = item.nome,
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-
-                        Text(
-                            text = item.nome,
-                            color = if (selecionado == item.nome) Color(0xFF7FBEF8) else Color.Black,
-                            fontWeight = if (selecionado == item.nome) FontWeight.Bold else FontWeight.Normal
+                    item.fotoClaro?.let { fotoUrl ->
+                        AsyncImage(
+                            model = fotoUrl,
+                            contentDescription = item.nome,
+                            modifier = Modifier
+                                .size(15.dp)
+                                .clip(RoundedCornerShape(6.dp))
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
+
+                    Text(
+                        text = item.nome,
+                        color = if (selecionado == item.nome) Color(0xFF7FBEF8) else Color.Black,
+                        fontWeight = if (selecionado == item.nome) FontWeight.Bold else FontWeight.Normal
+                    )
                 }
             }
         }
     }
+}
 
 // funcao para puxar os icons que nao vem da api em disponibilidade, os icons aqui foi colocado manualmente
-    @Composable
-    fun FiltroSingleSelect(
-        titulo: String,
-        lista: List<String>,
-        selecionado: String?,
-        onSelect: (String?) -> Unit,
-        icone: Int
-    ) {
-        var mostrar by remember { mutableStateOf(false) }
+@Composable
+fun FiltroSingleSelect(
+    titulo: String,
+    lista: List<String>,
+    selecionado: String?,
+    onSelect: (String?) -> Unit,
+    icone: Int
+) {
+    var mostrar by remember { mutableStateOf(false) }
 
-        Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
 
-            // 🔹 Cabeçalho (com imagem e seta)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+        // 🔹 Cabeçalho (com imagem e seta)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
+        ) {
+            Image(
+                painter = painterResource(id = icone),
+                contentDescription = titulo,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = icone),
-                    contentDescription = titulo,
-                    modifier = Modifier
-                        .size(25.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
+                    .size(25.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(titulo, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = { mostrar = !mostrar }) {
+                Icon(
+                    imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
                 )
-
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(titulo, style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { mostrar = !mostrar }) {
-                    Icon(
-                        imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null
-                    )
-                }
             }
+        }
 
-            if (mostrar) {
-                lista.forEach { item ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(if (selecionado == item) null else item) }
-                            .padding(horizontal = 24.dp, vertical = 10.dp)
-                    ) {
-                        // 🖼️ Define imagem com base no item
-                        val imagem = when (item) {
-                            "Sim" -> R.drawable.sim
-                            "Não" -> R.drawable.nao
-                            else -> null
-                        }
-
-                        imagem?.let {
-                            Image(
-                                painter = painterResource(id = imagem),
-                                contentDescription = item,
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .clip(RoundedCornerShape(6.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-
-                        Text(
-                            text = item,
-                            color = if (selecionado == item) Color(0xFF7FBEF8) else Color.Black,
-                            fontWeight = if (selecionado == item) FontWeight.Bold else FontWeight.Normal
-                        )
+        if (mostrar) {
+            lista.forEach { item ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(if (selecionado == item) null else item) }
+                        .padding(horizontal = 24.dp, vertical = 10.dp)
+                ) {
+                    // 🖼️ Define imagem com base no item
+                    val imagem = when (item) {
+                        "Sim" -> R.drawable.sim
+                        "Não" -> R.drawable.nao
+                        else -> null
                     }
+
+                    imagem?.let {
+                        Image(
+                            painter = painterResource(id = imagem),
+                            contentDescription = item,
+                            modifier = Modifier
+                                .size(15.dp)
+                                .clip(RoundedCornerShape(6.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    Text(
+                        text = item,
+                        color = if (selecionado == item) Color(0xFF7FBEF8) else Color.Black,
+                        fontWeight = if (selecionado == item) FontWeight.Bold else FontWeight.Normal
+                    )
                 }
             }
         }
     }
+}
+
