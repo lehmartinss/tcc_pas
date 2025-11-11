@@ -545,7 +545,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                                 val response = apiFiltrar.filtrarUnidades(filtros)
                                 if (response.isSuccessful && response.body() != null) {
 
-                                    // 🔹 Achata a lista de listas em uma só
+
                                     val todasUnidades = response.body()!!.unidadesDeSaude.flatten()
 
                                     var unidadesFiltradas = todasUnidades.filter { unidade ->
@@ -564,7 +564,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                                         categoriaOk && especialidadeOk && disponibilidadeOk
                                     }
 
-                                    // ✅ Filtro por distância (igual à TelaMapa)
+
                                     if (localizacaoUsuario != null) {
                                         val apiOSM = RetrofitFactoryOSM().getOSMService()
                                         val raioKm = sliderPosition // variável do seu slider de distância

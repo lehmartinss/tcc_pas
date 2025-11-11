@@ -16,5 +16,6 @@ data class LoginResponse(
     val email: String = "",
     val cep: String = "",
     val telefone: String = "",
-    val senha: String = ""
+    val senha: String = "",
+    val foto: String?
 )

@@ -132,23 +132,22 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
                         .clip(RoundedCornerShape(24.dp))
                         .background(Color.White),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 5
-                        .dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
                     shape = RoundedCornerShape(16.dp)
-                ){}
-
-//                // CARD BRANCO COM ÍCONE DE PERFIL
-//                Box(
-//                    modifier = Modifier
-//                        .align(Alignment.BottomCenter)
-//                        .offset(y = 60.dp)
-//                        .size(120.dp)
-//                        .clip(RoundedCornerShape(24.dp))
-//                        .background(Color.White),
-//                    contentAlignment = Alignment.Center
-//                ) {
-//
-//                }
+                ){
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        AsyncImage(
+                            model = user?.foto ?: "Carregando...",
+                            contentDescription = "Foto da unidade",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(70.dp))
@@ -396,7 +395,8 @@ fun TelaPerfilPreview() {
                 nome_mae = "Maria Martins",
                 email = "leticia@email.com",
                 cep = "06600-000",
-                telefone = "11999999999"
+                telefone = "11999999999",
+                foto = null
             )
         }
     }
