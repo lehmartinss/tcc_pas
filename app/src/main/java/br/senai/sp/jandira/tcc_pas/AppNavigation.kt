@@ -1,5 +1,6 @@
 package br.senai.sp.jandira.tcc_pas
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -20,6 +21,8 @@ import br.senai.sp.jandira.tcc_pas.screens.TelaMapa
 import br.senai.sp.jandira.tcc_pas.screens.TelaMapaNavBar
 import br.senai.sp.jandira.tcc_pas.screens.TelaPerfil
 import br.senai.sp.jandira.tcc_pas.viewmodel.UserViewModel
+import br.senai.sp.jandira.tcc_pas.screens.TelaSobre
+import br.senai.sp.jandira.tcc_pas.screens.TelaTermosDeUso
 import com.google.gson.reflect.TypeToken
 
 @Composable
@@ -58,6 +61,7 @@ fun AppNavigation() {
             val id = backStackEntry.arguments?.getInt("id") ?: 0
             HomeInformacaoUnidade(navController, id)
         }
-
+        composable("termos") { TelaTermosDeUso(navController) }
+        composable("sobre") { TelaSobre(navController) }
     }
 }

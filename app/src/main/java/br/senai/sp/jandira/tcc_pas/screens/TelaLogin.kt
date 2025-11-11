@@ -184,13 +184,6 @@ fun TelaLogin(navController: NavHostController?, userViewModel: UserViewModel) {
                     )
                 }
 
-//                Text(
-//                    text = stringResource(R.string.login_gov),
-//                   fontSize = 15.sp,
-//                    fontWeight = FontWeight.SemiBold,
-//                    color = Color(0xFF1E5FA3)
-//                )
-
                 Spacer(modifier = Modifier.height(30.dp))
 
                 OutlinedTextField(
@@ -301,8 +294,7 @@ fun TelaLogin(navController: NavHostController?, userViewModel: UserViewModel) {
 
                         TextButton(
                             onClick = {
-                                // navegação para termos, ex:
-                                // navController?.navigate("tela_termos")
+                                navController?.navigate(route = "termos")
                             },
                             contentPadding = PaddingValues(0.dp),
                         ) {

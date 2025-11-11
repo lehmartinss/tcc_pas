@@ -115,16 +115,16 @@ fun HomeScreen(navController: NavHostController) {
     var isLoading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    // 🛰️ FUSED → cria o cliente de localização
+    // cria o cliente de localização
     val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // 🧩 PERMISSÃO → controla se o usuário já deu acesso à localização
+    // controla se o usuário já deu acesso à localização
     val locationPermissionGranted = remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted -> locationPermissionGranted.value = granted }
 
-    // 🧩 PERMISSÃO → pede permissão assim que o composable é carregado
+    // pede permissão de usar localizacao assim que o composable é carregado
     LaunchedEffect(Unit) {
         val granted = ContextCompat.checkSelfPermission(
             context,
@@ -137,7 +137,7 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
 
-    // 🚀 Quando a permissão de localização for concedida, pega a localização e centraliza o mapa
+    // quando a permissão de localização for concedida, pega a localização e centraliza o mapa
     LaunchedEffect(locationPermissionGranted.value) {
         if (locationPermissionGranted.value) {
             try {
@@ -148,7 +148,6 @@ fun HomeScreen(navController: NavHostController) {
 
                         Log.i("Localização", "Lat: $latitude | Lon: $longitude")
 
-                        // Atualiza o mapa se já tiver sido criado
                         mapView?.controller?.apply {
                             setZoom(18.0)
                             setCenter(GeoPoint(latitude, longitude))
@@ -163,7 +162,7 @@ fun HomeScreen(navController: NavHostController) {
                             org.osmdroid.views.overlay.Marker.ANCHOR_BOTTOM
                         )
 
-                        // Limpa marcadores antigos e adiciona o novo
+                        // limpa marcadores antigos e adiciona o novo
                         mapView?.overlays?.clear()
                         mapView?.overlays?.add(marker)
                         mapView?.invalidate()
@@ -179,12 +178,12 @@ fun HomeScreen(navController: NavHostController) {
     }
 
 
-    // Retrofit da API de campanhas
+    // retrofit da API de campanhas
     val apiCampanha = RetrofitFactoryCampanha().getCampanhaService()
     var campanhas by remember { mutableStateOf<List<CampanhaResponse>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
 
-    // Carrega campanhas
+    // carrega campanhas
     LaunchedEffect(Unit) {
         try {
             val response = withContext(Dispatchers.IO) { apiCampanha.listarCampanhas() }
@@ -202,13 +201,21 @@ fun HomeScreen(navController: NavHostController) {
         bottomBar = { BarraDeNavegacaoMapa(navController = navController) }
     ) { paddingValues ->
 
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .zIndex(10f)
+        ) {
+            BarraDePesquisaComFiltros(navController = navController)
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
-                .padding(paddingValues) 
+                .padding(paddingValues)
         ) {
-            // Fundo do mapa
+            // fundo do mapa
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -233,18 +240,8 @@ fun HomeScreen(navController: NavHostController) {
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .zIndex(10f)
 
-            ) {
-                BarraDePesquisaComFiltros(navController = navController)
-            }
-
-
-
-            // Card das campanhas
+            // card das campanhas
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -264,7 +261,7 @@ fun HomeScreen(navController: NavHostController) {
                         .verticalScroll(rememberScrollState())
                 ) {
 
-                    // Card de informação fixa
+                    // card de informação fixa
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -311,7 +308,7 @@ fun HomeScreen(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    // Lista de campanhas
+                    // lista de campanhas
                     if (carregando) {
                         Text(
                             "Carregando campanhas...",
@@ -347,7 +344,7 @@ fun HomeScreen(navController: NavHostController) {
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Indicador de bolinhas
+                        // indicador de bolinhas
                         Row(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
@@ -369,6 +366,7 @@ fun HomeScreen(navController: NavHostController) {
                         }
                     }
                 }
+
             }
         }
     }
@@ -396,7 +394,7 @@ fun BarraDeNavegacao(navController: NavHostController?) {
         )
         NavigationBarItem(
             selected = false,
-            onClick = {navController!!.navigate(route = "mapa")},
+            onClick = {navController!!.navigate(route = "mapanav")},
             icon = {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
@@ -432,7 +430,7 @@ fun BarraDeNavegacao(navController: NavHostController?) {
 
 
 
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 fun HomeScreenPreview() {
     Tcc_PasTheme {
