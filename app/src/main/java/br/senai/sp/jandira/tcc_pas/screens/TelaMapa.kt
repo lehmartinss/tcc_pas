@@ -40,6 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -67,6 +68,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -85,6 +87,9 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import kotlin.coroutines.EmptyCoroutineContext.get
+
+
 
 
 @Composable
@@ -398,7 +403,7 @@ fun BarraDeNavegacaoMapa(navController: NavHostController?) {
         )
         NavigationBarItem(
             selected = false,
-            onClick = {navController!!.navigate(route = "mapa")},
+            onClick = {navController!!.navigate(route = "mapanav")},
             icon = {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
@@ -462,7 +467,7 @@ fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude, map
                 Text(
                     text = unidade.nome,
                     color = Color(0xFF298BE6),
-                    fontWeight = FontWeight.Light,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp
                 )
 
@@ -499,7 +504,6 @@ fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude, map
                 }
 
             }
-
             Button(
                 onClick = {
                     Log.d("NAV_TESTE", "Clicou em Saber mais da unidade: ${unidade.id}")

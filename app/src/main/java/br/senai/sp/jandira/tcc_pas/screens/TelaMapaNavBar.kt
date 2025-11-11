@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -83,21 +85,6 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
 
-@Composable
-fun HomeMapaNavBar(navController: NavHostController) {
-    // pega o backstack atual de forma segura
-    val currentBackStackEntry = navController.currentBackStackEntry
-    val savedStateHandle = currentBackStackEntry?.savedStateHandle
-
-    val unidadesFiltradas = savedStateHandle
-        ?.get<List<UnidadeDeSaude>>("unidadesFiltradas")
-        ?: emptyList()
-
-    TelaMapaNavBar(navController)
-}
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaMapaNavBar(navController: NavHostController) {
@@ -116,16 +103,16 @@ fun TelaMapaNavBar(navController: NavHostController) {
     var isLoading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    // 🛰️ FUSED → cria o cliente de localização
+    // cria o cliente de localização
     val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // 🧩 PERMISSÃO → controla se o usuário já deu acesso à localização
+    // controla se o usuário já deu acesso à localização
     val locationPermissionGranted = remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted -> locationPermissionGranted.value = granted }
 
-    // 🧩 PERMISSÃO → pede permissão assim que o composable é carregado
+    // pede permissão de usar localizacao assim que o composable é carregado
     LaunchedEffect(Unit) {
         val granted = ContextCompat.checkSelfPermission(
             context,
@@ -147,7 +134,7 @@ fun TelaMapaNavBar(navController: NavHostController) {
                         scope.launch {
                             isLoading = true
 
-                            // 🔹 Primeiro, carrega a localização do usuário
+                            // carrega a localização do usuário
                             val response = api.buscarPorCoord(loc.latitude, loc.longitude)
                             val item = response.body()
                             if (item != null) {
@@ -168,117 +155,111 @@ fun TelaMapaNavBar(navController: NavHostController) {
     }
 
 
-
-
-
     val density = LocalDensity.current
     var navBarHeight by remember { mutableStateOf(0.dp) }
 
     val screenH = LocalConfiguration.current.screenHeightDp.dp
 
-    // peek dinâmico: começa no meio, depois vai para a altura da nav
-    var peek by remember { mutableStateOf(screenH * 0.5f) }
-    var lockToNavAfterFirstHide by remember { mutableStateOf(true) }
+    Scaffold(
+        bottomBar = { BarraDeNavegacaoMapanav(navController = navController) }
+    ) { paddingValues ->
 
-    // vamos recriar o scaffold quando o peek mudar (ancoras novas)
-    key(peek) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
 
-        val sheetState = rememberStandardBottomSheetState(
-            initialValue = SheetValue.PartiallyExpanded, // abre “no meio”
-            skipHiddenState = false
-        )
-        val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
-        val scope = rememberCoroutineScope()
-
-        // abre no meio logo que monta (somente quando peek = 50%)
-        LaunchedEffect(Unit) {
-            if (peek >= screenH * 0.5f - 1.dp && peek <= screenH * 0.5f + 1.dp) {
-                sheetState.partialExpand()
-            }
-        }
-
-        // quando usuário esconder e já sabemos a altura da nav,
-        // mudamos o peek para nav e reabrimos em parcial
-        LaunchedEffect(navBarHeight, lockToNavAfterFirstHide) {
-            if (navBarHeight > 0.dp && lockToNavAfterFirstHide) {
-                snapshotFlow { sheetState.currentValue }.collect { v ->
-                    if (v == SheetValue.Hidden) {
-                        lockToNavAfterFirstHide = false
-                        // troca o peek (isso recria o scaffold por causa do key)
-                        peek = navBarHeight
-                    }
-                }
-            }
-        }
-
-        // toda vez que o peek for mudado para a altura da nav, reabre em parcial
-        LaunchedEffect(peek) {
-            if (peek == navBarHeight && navBarHeight > 0.dp) {
-                sheetState.partialExpand()
-            }
-        }
-
-        // esconder barras quando expandido (mude para false se quiser sempre visíveis)
-        val hideWhenExpanded = true
-        val hideChrome by remember {
-            derivedStateOf { hideWhenExpanded && sheetState.currentValue == SheetValue.Expanded }
-        }
-
-        Box(Modifier.fillMaxSize()) {
-
-
-
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color(0xFF0035A2))
-                ){
-                    AndroidView(
-                        modifier = Modifier.fillMaxSize(),
-                        factory = { context ->
-                            MapView(context).apply {
-                                setTileSource(TileSourceFactory.MAPNIK)
-                                setMultiTouchControls(true)
-                                controller.setZoom(19.0)
-                                controller.setCenter(GeoPoint(latitude, longitude))
-                                mapView = this
-                            }
-                        }
-                    )
-
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    }
-                }
-
-
-
-            AnimatedVisibility(
-                visible = !hideChrome,
+            Box(
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .zIndex(2f)
-
+                    .zIndex(10f)
             ) {
                 BarraDePesquisaComFiltros(navController = navController)
             }
 
-            AnimatedVisibility(
-                visible = !hideChrome,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .zIndex(3f)
-                    .onSizeChanged { size ->
-                        navBarHeight = with(density) { size.height.toDp() }
-                    }
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF0035A2))
             ) {
-                BarraDeNavegacaoCampanha(navController)
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { context ->
+                        MapView(context).apply {
+                            setTileSource(TileSourceFactory.MAPNIK)
+                            setMultiTouchControls(true)
+                            controller.setZoom(19.0)
+                            controller.setCenter(GeoPoint(latitude, longitude))
+                            mapView = this
+                        }
+                    }
+                )
+
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
             }
         }
     }
 }
 
+
+
+@Composable
+fun BarraDeNavegacaoMapanav(navController: NavHostController?) {
+    NavigationBar(
+        containerColor = Color(0xFF298BE6)
+    ) {
+        NavigationBarItem(
+            selected = false,
+            onClick = {navController!!.navigate(route = "Home")},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            label = {
+                Text(text = "Início",
+                    color = MaterialTheme.colorScheme.onPrimary)
+            }
+        )
+        NavigationBarItem(
+            selected = false,
+            onClick = {navController!!.navigate(route = "mapanav")},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Mapa",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            label = {
+                Text(text = "Mapa",
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        )
+        NavigationBarItem(
+            selected = false,
+            onClick = {navController!!.navigate(route = "perfil")},
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Perfil",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            },
+            label = {
+                Text(text = "Perfil",
+                    color = MaterialTheme.colorScheme.onPrimary)
+            }
+        )
+    }
+
+}
 
 
 
