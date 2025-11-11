@@ -435,6 +435,8 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                                         categoriaOk && especialidadeOk && disponibilidadeOk
                                     }
 
+
+
                             withContext(Dispatchers.Main) {
                                         navController.navigate("mapafiltrado") { launchSingleTop = true }
                                         navController.getBackStackEntry("mapafiltrado")
