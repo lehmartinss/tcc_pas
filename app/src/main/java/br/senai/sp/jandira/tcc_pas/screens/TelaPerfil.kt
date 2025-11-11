@@ -1,8 +1,10 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
+import android.adservices.ondevicepersonalization.UserData
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -15,21 +17,57 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import br.senai.sp.jandira.tcc_pas.R
+import br.senai.sp.jandira.tcc_pas.model.LoginResponse
+import br.senai.sp.jandira.tcc_pas.screens.DataItem
 import br.senai.sp.jandira.tcc_pas.viewmodel.UserViewModel
+import coil.compose.AsyncImage
+
+
+fun formatarCpf(cpf: String?): String {
+    if (cpf.isNullOrBlank()) return "Carregando..."
+    val apenasNumeros = cpf.filter { it.isDigit() }
+
+    return if (apenasNumeros.length == 11) {
+        "${apenasNumeros.substring(0, 3)}.${apenasNumeros.substring(3, 6)}.${apenasNumeros.substring(6, 9)}-${apenasNumeros.substring(9, 11)}"
+    } else {
+        cpf // Se não tiver 11 dígitos, mostra como veio
+    }
+}
+
+
+fun formatarTelefone(telefone: String?): String {
+    if (telefone.isNullOrBlank()) return "Carregando..."
+    val apenasNumeros = telefone.filter { it.isDigit() }
+
+    return when (apenasNumeros.length) {
+        10 -> { // Ex: 1199999999
+            "(${apenasNumeros.substring(0, 2)}) ${apenasNumeros.substring(2, 6)}-${apenasNumeros.substring(6)}"
+        }
+        11 -> { // Ex: 11999999999
+            "(${apenasNumeros.substring(0, 2)}) ${apenasNumeros.substring(2, 7)}-${apenasNumeros.substring(7)}"
+        }
+        else -> telefone // Se não tiver 10 ou 11 dígitos, mostra como veio
+    }
+}
+
+
 
 @Composable
 fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
-
-
 
     val user = userViewModel.userData
 
@@ -46,177 +84,210 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
 
     }
 
+    Scaffold(
+        containerColor = Color(0xFFF5F5F5),
+        bottomBar = { BarraDeNavegacaoPerfil(navController) }
+    ) { paddingValues ->
 
-    Column(
-        modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-    ) {
-        // HEADER AZUL
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .background(Color(0xFF1B5283))
+                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color(0xFFF5F5F5))
         ) {
-            // Logo "PAS"
-            Image(
-                painter = painterResource(id = br.senai.sp.jandira.tcc_pas.R.drawable.logo),
-                contentDescription = "Logo PAS",
-                modifier = Modifier
-                    .height(90.dp)
-                    .width(100.dp)
-                    .padding(start = 20.dp, top = 16.dp)
-                    .align(Alignment.TopStart)
-            )
-
-            // Texto "Meu Perfil"
-            Text(
-                text = "Meu Perfil",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .offset(y = (-20).dp)
-            )
-
-            // CARD BRANCO COM ÍCONE DE PERFIL
+            // HEADER AZUL
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset(y = 60.dp)
-                    .size(120.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Color.White),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color(0xFF1B5283))
             ) {
+                // Logo "PAS"
                 Image(
-                    painter = painterResource(id =  br.senai.sp.jandira.tcc_pas.R.drawable.profile),
-                    contentDescription = "Avatar",
-                    modifier = Modifier.size(80.dp)
+                    painter = painterResource(id = br.senai.sp.jandira.tcc_pas.R.drawable.logo),
+                    contentDescription = "Logo PAS",
+                    modifier = Modifier
+                        .height(90.dp)
+                        .width(100.dp)
+                        .padding(start = 20.dp, top = 16.dp)
+                        .align(Alignment.TopStart)
                 )
+
+
+                Text(
+                    text = "Meu Perfil",
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+
+                )
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(y = 60.dp)
+                        .size(120.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Color.White),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 5
+                        .dp),
+                    shape = RoundedCornerShape(16.dp)
+                ){}
+
+//                // CARD BRANCO COM ÍCONE DE PERFIL
+//                Box(
+//                    modifier = Modifier
+//                        .align(Alignment.BottomCenter)
+//                        .offset(y = 60.dp)
+//                        .size(120.dp)
+//                        .clip(RoundedCornerShape(24.dp))
+//                        .background(Color.White),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//
+//                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(70.dp))
+            Spacer(modifier = Modifier.height(70.dp))
 
-        // CARD DADOS PESSOAIS
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
+            // card
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Text(
-                    text = "Dados pessoais",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1E4A7A)
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp)
+                ) {
+                    Text(
+                        text = "Dados pessoais",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E4A7A)
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                DataItem(
-                    icon = Icons.Filled.Person,
-                    label = "Nome",
-                    value = user?.nome ?: "Carregando..."
-                )
+                    DataItem(
+                        drawableId = R.drawable.nome,
+                        label = "Nome",
+                        value = user?.nome ?: "Carregando..."
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                DataItem(
-                    icon = Icons.Filled.Info,
-                    label = "CPF",
-                    value = user?.cpf ?: "Carregando..."
-                )
+                    DataItem(
+                        drawableId = R.drawable.cpf,
+                        label = "CPF",
+                        value = formatarCpf(user?.cpf)
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
 
-                DataItem(
-                    icon = Icons.Filled.LocationOn,
-                    label = "Naturalidade",
-                    value = user?.naturalidade ?: "Carregando..."
-                )
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    DataItem(
+                        drawableId = R.drawable.nacionalidade,
+                        label = "Naturalidade",
+                        value = user?.naturalidade ?: "Carregando..."
+                    )
 
-                DataItem(
-                    icon = Icons.Filled.Star,
-                    label = "Nascimento",
-                    value = user?.nascimento ?: "Carregando..."
-                )
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    DataItem(
+                        drawableId = R.drawable.nascimento,
+                        label = "Data de Nascimento",
+                        value = user?.nascimento ?: "Carregando..."
+                    )
 
-                DataItem(
-                    icon = Icons.Filled.AccountCircle,
-                    label = "Nome da Mãe",
-                    value = user?.nome_mae ?: "Carregando..."
-                )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    DataItem(
+                        drawableId = R.drawable.mae,
+                        label = "Nome da Mãe",
+                        value = user?.nome_mae ?: "Carregando..."
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-        // CARD DADOS DE CADASTRO
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
+            // CARD DADOS DE CADASTRO
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Text(
-                    text = "Dados de cadastro",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1E4A7A)
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp)
+                ) {
+                    Text(
+                        text = "Dados de cadastro",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E4A7A)
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                DataItem(
-                    icon = Icons.Filled.Email,
-                    label = "E-mail",
-                    value = user?.email ?: "Carregando..."
-                )
+                    DataItem(
+                        drawableId = R.drawable.email,
+                        label = "E-mail",
+                        value = user?.email ?: "Carregando..."
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Divider(
+                        color = Color(0x66B0C4DE),
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 5.dp)
+                    )
 
-                DataItem(
-                    icon = Icons.Filled.Place,
-                    label = "Endereço",
-                    value = user?.cep ?: "Carregando..."
-                )
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    DataItem(
+                        drawableId = R.drawable.endereco,
+                        label = "Endereço",
+                        value = user?.cep ?: "Carregando..."
+                    )
 
-                DataItem(
-                    icon = Icons.Filled.Phone,
-                    label = "Telefone",
-                    value = user?.telefone ?: "Carregando..."
-                )
+                    Divider(
+                        color = Color(0x66B0C4DE),
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 5.dp)
+                    )
+
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    DataItem(
+                        drawableId = R.drawable.telefone,
+                        label = "Telefone",
+                        value = formatarTelefone(user?.telefone)
+                    )
+
+                    Divider(
+                        color = Color(0x66B0C4DE),
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 5.dp)
+                    )
+
+                }
+
             }
-
-
+            Spacer(modifier = Modifier.height(10.dp))
         }
-
-        BarraDeNavegacaoPerfil(navController)
     }
 }
 
@@ -276,32 +347,59 @@ fun BarraDeNavegacaoPerfil(navController: NavHostController?) {
 }
 
 @Composable
-fun DataItem(icon: ImageVector, label: String, value: String) {
+fun DataItem(drawableId: Int, label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = Color(0xFF1E4A7A),
-            modifier = Modifier.size(24.dp)
+        Image(
+            painter = painterResource(id = drawableId),
+            contentDescription = label,
+            modifier = Modifier
+                .size(30.dp)
+                .padding(end = 8.dp)
         )
-
-        Spacer(modifier = Modifier.width(12.dp))
 
         Column {
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = Color(0xFF888888)
+                color = Color(0xFF7FBEF8)
             )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = value,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
-                color = Color(0xFF1E4A7A)
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+        }
+    }
+}
+
+
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun TelaPerfilPreview() {
+    val navController = rememberNavController()
+
+    // Mock simples para o preview
+    val userViewModel = object : UserViewModel() {
+        init {
+            userData = LoginResponse(
+                nome = "Letícia Martins",
+                cpf = "12345678900",
+                naturalidade = "São Paulo",
+                nascimento = "15042002",
+                nome_mae = "Maria Martins",
+                email = "leticia@email.com",
+                cep = "06600-000",
+                telefone = "11999999999"
             )
         }
     }
+
+    TelaPerfil(navController = navController, userViewModel = userViewModel)
 }
