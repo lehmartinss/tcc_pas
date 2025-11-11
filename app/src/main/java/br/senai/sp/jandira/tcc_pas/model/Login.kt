@@ -12,7 +12,7 @@ data class LoginResponse(
     val cpf: String = "",
     val naturalidade: String = "",
     val nascimento: String = "",
-    val nome_da_mae: String = "",
+    val nome_mae: String = "",
     val email: String = "",
     val cep: String = "",
     val telefone: String = "",

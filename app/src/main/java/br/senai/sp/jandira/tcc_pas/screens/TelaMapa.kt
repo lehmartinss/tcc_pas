@@ -188,6 +188,7 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
                                             marker.position = geoPoint
                                             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                                             marker.title = unidade.nome
+                                            marker.icon = ContextCompat.getDrawable(context, R.drawable.marker)
 
                                             // adiciona o marcador ao mapa (sem recriar)
                                             mapView?.overlays?.add(marker)
