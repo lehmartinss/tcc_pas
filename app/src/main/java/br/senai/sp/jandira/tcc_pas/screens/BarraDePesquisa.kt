@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -119,7 +120,8 @@ import kotlin.math.pow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BarraDePesquisaComFiltros(navController: NavHostController) {
+fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: PaddingValues = PaddingValues(top = 50.dp, start = 20.dp, end = 20.dp),
+                              ) {
 
 
     // 🧩 PERMISSÃO → controla se o usuário já deu acesso à localização
@@ -297,8 +299,8 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(65.dp)
-                .padding(horizontal = 15.dp, vertical = 12.dp)
+                .height(85.dp)
+                .padding(paddingValues)
                 .background(Color(0xFF298BE6), RoundedCornerShape(38))
                 .zIndex(10f),
             contentAlignment = Alignment.CenterStart
@@ -489,7 +491,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController) {
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(top = 70.dp, bottom = 32.dp)
+                        .padding(top = 90.dp, bottom = 32.dp)
                 ) {
                     FiltroSingleSelectComFoto(
                         titulo = "Especialidades",
@@ -680,6 +682,7 @@ fun FiltroSingleSelectComFoto(
     icone: Int
 ) {
     var mostrar by remember { mutableStateOf(false) }
+    var verMais by remember { mutableStateOf(false) } // controla se está expandido
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -709,7 +712,10 @@ fun FiltroSingleSelectComFoto(
         }
 
         if (mostrar) {
-            lista.forEach { item ->
+
+            val listaExibida = if (!verMais && lista.size > 6) lista.take(4) else lista
+
+            listaExibida.forEach { item ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -717,7 +723,6 @@ fun FiltroSingleSelectComFoto(
                         .clickable { onSelect(if (selecionado == item.nome) null else item.nome) }
                         .padding(horizontal = 24.dp, vertical = 10.dp)
                 ) {
-
                     item.fotoClaro?.let { fotoUrl ->
                         AsyncImage(
                             model = fotoUrl,
@@ -736,9 +741,22 @@ fun FiltroSingleSelectComFoto(
                     )
                 }
             }
+
+            // 🔹 Botão "Ver mais" / "Ver menos" (só aparece se houver mais de 6 itens)
+            if (lista.size > 6) {
+                Text(
+                    text = if (verMais) "Ver menos" else "Ver mais",
+                    color = Color(0xFF1E5FA3),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                        .clickable { verMais = !verMais }
+                )
+            }
         }
     }
 }
+
 
 // funcao para puxar os icons que nao vem da api em disponibilidade, os icons aqui foi colocado manualmente
 @Composable

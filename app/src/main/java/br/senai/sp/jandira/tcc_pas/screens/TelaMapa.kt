@@ -355,7 +355,6 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
             AnimatedVisibility(
                 visible = !hideChrome,
                 modifier = Modifier
-                    .padding(top = 25.dp)
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .zIndex(2f)
