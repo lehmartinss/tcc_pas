@@ -371,7 +371,7 @@ fun CardDadosDeCadastro(
                                 nascimento = user.nascimento,
                                 nome_mae = user.nome_mae,
                                 senha = user.senha,
-                                foto = user.foto // 👈 mantém a foto antiga!
+                                foto_perfil = user.foto_perfil // 👈 mantém a foto antiga!
                             )
 
                             usuarioAtualizado?.let { onSalvarClick(it) }

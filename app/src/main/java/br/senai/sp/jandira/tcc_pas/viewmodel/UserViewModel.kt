@@ -86,7 +86,7 @@ open class UserViewModel : ViewModel() {
             try {
                 // ✅ Garante que a foto antiga não seja perdida
                 val usuarioComFoto = usuarioAtualizado.copy(
-                    foto = usuarioAtualizado.foto ?: userData?.foto
+                    foto_perfil = usuarioAtualizado.foto_perfil ?: userData?.foto_perfil
                 )
 
                 val id = usuarioComFoto.id
@@ -106,7 +106,7 @@ open class UserViewModel : ViewModel() {
                         cep = dadosAtualizados?.cep ?: userData?.cep.orEmpty(),
                         telefone = dadosAtualizados?.telefone ?: userData?.telefone.orEmpty(),
                         senha = dadosAtualizados?.senha ?: userData?.senha.orEmpty(),
-                        foto = dadosAtualizados?.foto ?: userData?.foto // 👈 mantém a antiga se vier null
+                        foto_perfil = dadosAtualizados?.foto_perfil ?: userData?.foto_perfil // 👈 mantém a antiga se vier null
                     )
 
                     Log.i("UserViewModel", "Usuário atualizado com sucesso!")

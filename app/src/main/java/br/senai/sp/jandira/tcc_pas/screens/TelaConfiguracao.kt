@@ -1,5 +1,11 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -69,7 +76,7 @@ fun TelaConfiguracoes(navController: NavHostController, userViewModel: UserViewM
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Lista de opções
-                SettingsList()
+                SettingsList(navController)
             }
         }
     }
@@ -350,8 +357,10 @@ fun HeaderSection(isDarkTheme: Boolean, onThemeToggle: () -> Unit, onLogoutClick
 //
 //// ==================== SETTINGS LIST ====================
 @Composable
-fun SettingsList() {
+fun SettingsList(navController: NavHostController) {
     var isDarkTheme by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -368,21 +377,35 @@ fun SettingsList() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Idioma
-        SettingsItemSimple(
-            title = "Idioma",
-            subtitle = "Português",
-            onClick = { }
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         // Contato
         SettingsItemSimple(
             title = "Contato",
             subtitle = "pas.suporte@gmail.com",
-            onClick = { }
-        )
+            onClick = {
+                val destinatario = "pas.suporte@gmail.com"
+                val assunto = "Suporte - Aplicativo PAS"
+                val corpo = "Olá, estou entrando em contato sobre o app."
+
+                // Cria o Intent com esquema mailto e os extras
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:$destinatario")
+                    putExtra(Intent.EXTRA_SUBJECT, assunto)
+                    putExtra(Intent.EXTRA_TEXT, corpo)
+                }
+
+                // Necessário se o contexto não for uma Activity
+                if (context !is Activity) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+
+                // Tenta abrir o app de e-mail
+                try {
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Nenhum app de e-mail encontrado.", Toast.LENGTH_LONG).show()
+                }
+            })
+
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -390,7 +413,10 @@ fun SettingsList() {
         SettingsItemSimple(
             title = "Termos de uso",
             subtitle = null,
-            onClick = { }
+            onClick = {
+
+                navController.navigate("termos")
+            }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -399,7 +425,10 @@ fun SettingsList() {
         SettingsItemSimple(
             title = "Sobre",
             subtitle = null,
-            onClick = { }
+            onClick = {
+
+                navController.navigate("sobre")
+            }
         )
     }
 }
