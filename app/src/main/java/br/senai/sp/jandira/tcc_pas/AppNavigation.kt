@@ -15,6 +15,7 @@ import br.senai.sp.jandira.tcc_pas.screens.HomeMapa
 
 //import br.senai.sp.jandira.tcc_pas.screens.HomeMapa
 import br.senai.sp.jandira.tcc_pas.screens.HomeScreen
+import br.senai.sp.jandira.tcc_pas.screens.TelaConfiguracoes
 import br.senai.sp.jandira.tcc_pas.screens.TelaDescricacaoCampanhas
 import br.senai.sp.jandira.tcc_pas.screens.TelaLogin
 import br.senai.sp.jandira.tcc_pas.screens.TelaMapa
@@ -39,6 +40,7 @@ fun AppNavigation() {
         composable("mapa") { TelaMapa(navController) }
         composable("mapanav") { TelaMapaNavBar(navController) }
         composable("perfil") { TelaPerfil(navController, userViewModel) }
+        composable("config") { TelaConfiguracoes(navController, userViewModel) }
         composable(
             "campanha/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType })
