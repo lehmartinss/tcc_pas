@@ -135,6 +135,8 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
                             .width(35.dp)
                             .clickable{navController.navigate("config")}
                     )
+
+
                 }
 
 

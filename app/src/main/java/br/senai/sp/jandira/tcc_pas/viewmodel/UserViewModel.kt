@@ -30,7 +30,7 @@ open class UserViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val usuarioComFoto = usuarioAtualizado.copy(
-                    foto_perfil =  usuarioAtualizado.foto_perfil ?: userData?.foto_perfil
+                    foto_perfil = usuarioAtualizado.foto_perfil ?: userData?.foto_perfil
                 )
 
                 val id = usuarioComFoto.id
