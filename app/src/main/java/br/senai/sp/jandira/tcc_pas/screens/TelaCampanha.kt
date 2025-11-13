@@ -248,7 +248,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
                     text = "Informações",
                     color = Color(0xff1E5FA3),
                     textAlign = TextAlign.Center,
-                    fontSize = 20.sp,
+                    fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -275,7 +275,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
                         text = it,
                         color = Color(0xff094175),
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 12.sp,
+                        fontSize = 16.sp,
                         modifier = Modifier.padding(top = 12.dp)
                     )
                 }
@@ -318,26 +318,69 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
                     },
                     content = {
                         Column(modifier = Modifier.padding(start = 8.dp)) {
-                            campanha?.cidades?.forEach { cidadeItem ->
 
-                                InfoText("Cidade", cidadeItem.cidade)
+                            val cidades = campanha?.cidades
 
-                                cidadeItem.unidades_disponiveis.forEach { unidade ->
-                                    Text(
-                                        text = "- $unidade",
-                                        color = Color(0xffF9FAFB),
-                                        fontSize = 14.sp,
-                                        modifier = Modifier.padding(start = 16.dp, bottom = 2.dp)
-                                    )
+                            if (cidades.isNullOrEmpty()) {
+                                Text(
+                                    text = "Não informado",
+                                    color = Color(0xFF0E3367),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(start = 8.dp, bottom = 6.dp)
+                                )
+                            } else {
+                                cidades.forEach { cidadeItem ->
+                                    InfoText("Cidade", cidadeItem.cidade)
+
+                                    cidadeItem.unidades_disponiveis.forEach { unidade ->
+                                        Text(
+                                            text = "- $unidade",
+                                            color = Color(0xffF9FAFB),
+                                            fontSize = 14.sp,
+                                            modifier = Modifier.padding(start = 16.dp, bottom = 2.dp)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(6.dp))
                                 }
-
-                                Spacer(modifier = Modifier.height(6.dp))
                             }
                         }
                     }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
+
+//            item {
+//                ExpandableSection(
+//                    title = "Localização",
+//                    expanded = expandedSection == "localizacao",
+//                    onExpandChange = {
+//                        expandedSection =
+//                            if (expandedSection == "localizacao") null else "localizacao"
+//                    },
+//                    content = {
+//                        Column(modifier = Modifier.padding(start = 8.dp)) {
+//                            campanha?.cidades?.forEach { cidadeItem ->
+//
+//                                InfoText("Cidade", cidadeItem.cidade)
+//
+//                                cidadeItem.unidades_disponiveis.forEach { unidade ->
+//                                    Text(
+//                                        text = "- $unidade",
+//                                        color = Color(0xffF9FAFB),
+//                                        fontSize = 14.sp,
+//                                        modifier = Modifier.padding(start = 16.dp, bottom = 2.dp)
+//                                    )
+//                                }
+//
+//                                Spacer(modifier = Modifier.height(6.dp))
+//                            }
+//                        }
+//                    }
+//                )
+//                Spacer(modifier = Modifier.height(10.dp))
+//            }
 
             item {
                 ExpandableSection(
