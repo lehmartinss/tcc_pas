@@ -34,7 +34,7 @@ fun AppNavigation() {
 
 
 
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = "perfil") {
         composable("login") { TelaLogin(navController, userViewModel) }
         composable("home") { HomeScreen(navController) }
         composable("mapa") { TelaMapa(navController) }

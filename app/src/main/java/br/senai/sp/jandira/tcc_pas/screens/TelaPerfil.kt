@@ -8,6 +8,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -27,6 +29,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -39,7 +42,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.LoginResponse
-import br.senai.sp.jandira.tcc_pas.screens.DataItem
 import br.senai.sp.jandira.tcc_pas.viewmodel.UserViewModel
 import coil.compose.AsyncImage
 
@@ -52,7 +54,7 @@ fun formatarCpf(cpf: String?): String {
     return if (apenasNumeros.length == 11) {
         "${apenasNumeros.substring(0, 3)}.${apenasNumeros.substring(3, 6)}.${apenasNumeros.substring(6, 9)}-${apenasNumeros.substring(9, 11)}"
     } else {
-        cpf // Se não tiver 11 dígitos, mostra como veio
+        cpf
     }
 }
 
@@ -62,15 +64,16 @@ fun formatarTelefone(telefone: String?): String {
     val apenasNumeros = telefone.filter { it.isDigit() }
 
     return when (apenasNumeros.length) {
-        10 -> { // Ex: 1199999999
+        10 -> {
             "(${apenasNumeros.substring(0, 2)}) ${apenasNumeros.substring(2, 6)}-${apenasNumeros.substring(6)}"
         }
-        11 -> { // Ex: 11999999999
+        11 -> {
             "(${apenasNumeros.substring(0, 2)}) ${apenasNumeros.substring(2, 7)}-${apenasNumeros.substring(7)}"
         }
-        else -> telefone // Se não tiver 10 ou 11 dígitos, mostra como veio
+        else -> telefone
     }
 }
+
 
 
 
@@ -115,7 +118,7 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
 
                 Column(modifier = Modifier.height(500.dp).width(100.dp).padding(start = 10.dp),
                     verticalArrangement = Arrangement.SpaceBetween) {
-                    // Logo "PAS"
+
                     Image(
                         painter = painterResource(id = br.senai.sp.jandira.tcc_pas.R.drawable.logo),
                         contentDescription = "Logo PAS",
@@ -127,7 +130,9 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
                     Image(
                         painter = painterResource(id = br.senai.sp.jandira.tcc_pas.R.drawable.settings),
                         contentDescription = "Configurações",
-                        modifier = Modifier.height(60.dp).width(40.dp)
+                        modifier = Modifier
+                            .height(40.dp)
+                            .width(35.dp)
                             .clickable{navController.navigate("config")}
                     )
                 }
@@ -142,26 +147,30 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
                         .align(Alignment.Center)
 
                 )
-                Card(
+                Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .offset(y = 60.dp)
                         .size(120.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Color.White),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ){
-                    Box(
-                        modifier = Modifier.fillMaxSize()
+                        .shadow(
+                            elevation = 12.dp,
+                            shape = RoundedCornerShape(16.dp),
+                            ambientColor = Color.Black.copy(alpha = 0.8f),
+                            spotColor = Color.Black.copy(alpha = 0.7f)
+                        )
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxSize(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
                         AsyncImage(
                             model = user?.foto_perfil ?: "Carregando...",
-                            contentDescription = "Foto da unidade",
+                            contentDescription = "Foto do usuário",
                             modifier = Modifier
                                 .fillMaxSize()
-                                .clip(RoundedCornerShape(12.dp)),
+                                .clip(RoundedCornerShape(16.dp)),
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -186,14 +195,14 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
                 ) {
                     Text(
                         text = "Dados pessoais",
-                        fontSize = 18.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1E4A7A)
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    DataItem(
+                    DadosPessoais(
                         drawableId = R.drawable.nome,
                         label = "Nome",
                         value = user?.nome ?: "Carregando..."
@@ -201,7 +210,7 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    DataItem(
+                    DadosPessoais(
                         drawableId = R.drawable.cpf,
                         label = "CPF",
                         value = formatarCpf(user?.cpf)
@@ -210,7 +219,7 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    DataItem(
+                    DadosPessoais(
                         drawableId = R.drawable.nacionalidade,
                         label = "Naturalidade",
                         value = user?.naturalidade ?: "Carregando..."
@@ -218,7 +227,7 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    DataItem(
+                    DadosPessoais(
                         drawableId = R.drawable.nascimento,
                         label = "Data de Nascimento",
                         value = user?.nascimento ?: "Carregando..."
@@ -226,10 +235,10 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    DataItem(
+                    DadosPessoais(
                         drawableId = R.drawable.mae,
                         label = "Nome da Mãe",
-                        value = user?.nome_mae ?: "Carregando..."
+                        value = user?.nome_mae ?: "Não informado"
                     )
                 }
             }
@@ -237,81 +246,11 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
             Spacer(modifier = Modifier.height(20.dp))
 
             CardDadosDeCadastro(
-                user = user, // esse é o user que vem do userViewModel.userData
+                user = user,
                 onSalvarClick = { usuarioAtualizado ->
-                    // aqui você pode chamar a função do seu viewmodel para atualizar
                     userViewModel.atualizarUsuario(usuarioAtualizado)
                 }
             )
-
-
-//            // CARD DADOS DE CADASTRO
-//            Card(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp),
-//                colors = CardDefaults.cardColors(containerColor = Color.White),
-//                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-//                shape = RoundedCornerShape(16.dp)
-//            ) {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(20.dp)
-//                ) {
-//                    Text(
-//                        text = "Dados de cadastro",
-//                        fontSize = 18.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color(0xFF1E4A7A)
-//                    )
-//
-//                    Spacer(modifier = Modifier.height(16.dp))
-//
-//                    DataItem(
-//                        drawableId = R.drawable.email,
-//                        label = "E-mail",
-//                        value = user?.email ?: "Carregando..."
-//                    )
-//
-//                    Divider(
-//                        color = Color(0x66B0C4DE),
-//                        thickness = 1.dp,
-//                        modifier = Modifier.padding(horizontal = 5.dp)
-//                    )
-//
-//                    Spacer(modifier = Modifier.height(12.dp))
-//
-//                    DataItem(
-//                        drawableId = R.drawable.endereco,
-//                        label = "Endereço",
-//                        value = user?.cep ?: "Carregando..."
-//                    )
-//
-//                    Divider(
-//                        color = Color(0x66B0C4DE),
-//                        thickness = 1.dp,
-//                        modifier = Modifier.padding(horizontal = 5.dp)
-//                    )
-//
-//
-//                    Spacer(modifier = Modifier.height(12.dp))
-//
-//                    DataItem(
-//                        drawableId = R.drawable.telefone,
-//                        label = "Telefone",
-//                        value = formatarTelefone(user?.telefone)
-//                    )
-//
-//                    Divider(
-//                        color = Color(0x66B0C4DE),
-//                        thickness = 1.dp,
-//                        modifier = Modifier.padding(horizontal = 5.dp)
-//                    )
-//
-//                }
-//
-//            }
             Spacer(modifier = Modifier.height(10.dp))
         }
     }
@@ -321,12 +260,11 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
 
 @Composable
 fun CardDadosDeCadastro(
-    user: LoginResponse?, // seu modelo de dados
-    onSalvarClick: (LoginResponse) -> Unit // callback para enviar para API
+    user: LoginResponse?,
+    onSalvarClick: (LoginResponse) -> Unit
 ) {
     var isEditing by remember { mutableStateOf(false) }
 
-    // Estados locais para edição
     var email by remember { mutableStateOf(user?.email ?: "") }
     var endereco by remember { mutableStateOf(user?.cep ?: "") }
     var telefone by remember { mutableStateOf(user?.telefone ?: "") }
@@ -351,16 +289,14 @@ fun CardDadosDeCadastro(
             ) {
                 Text(
                     text = "Dados de cadastro",
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1E4A7A)
                 )
 
-                // Botão Editar/Salvar
                 TextButton(
                     onClick = {
                         if (isEditing) {
-                            // Aqui você chama a função para enviar à API
                             val usuarioAtualizado = user?.copy(
                                 email = email,
                                 cep = endereco,
@@ -371,7 +307,7 @@ fun CardDadosDeCadastro(
                                 nascimento = user.nascimento,
                                 nome_mae = user.nome_mae,
                                 senha = user.senha,
-                                foto = user.foto // 👈 mantém a foto antiga!
+                                foto_perfil = user.foto_perfil
                             )
 
                             usuarioAtualizado?.let { onSalvarClick(it) }
@@ -381,54 +317,68 @@ fun CardDadosDeCadastro(
                 ) {
                     Text(
                         text = if (isEditing) "Salvar" else "Editar",
-                        color = if (isEditing) Color(0xFF1E4A7A) else Color.Gray
+                        color = if (isEditing) Color(0xFFFB2D2D) else Color(0xFF1E4A7A),
+                        fontSize = 17.sp,
+
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Campo: E-mail
-            DataItemEditable(
+            // email
+            DadosCadastro(
                 drawableId = R.drawable.email,
                 label = "E-mail",
                 value = email,
                 onValueChange = { email = it },
                 isEditing = isEditing
             )
-
-            Divider(color = Color(0x66B0C4DE), thickness = 1.dp, modifier = Modifier.padding(horizontal = 5.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+            Divider(
+                color = Color(0x66B0C4DE),
+                thickness = 1.dp,
+                modifier = Modifier.padding(start = 36.dp)
+            )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Campo: Endereço
-            DataItemEditable(
+            // endereço
+            DadosCadastro(
                 drawableId = R.drawable.endereco,
                 label = "Endereço",
                 value = endereco,
                 onValueChange = { endereco = it },
                 isEditing = isEditing
             )
-
-            Divider(color = Color(0x66B0C4DE), thickness = 1.dp, modifier = Modifier.padding(horizontal = 5.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+            Divider(
+                color = Color(0x66B0C4DE),
+                thickness = 1.dp,
+                modifier = Modifier.padding(start = 36.dp)
+            )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Campo: Telefone
-            DataItemEditable(
+            // telefone
+            DadosCadastro(
                 drawableId = R.drawable.telefone,
                 label = "Telefone",
-                value = telefone,
+                value = formatarTelefone(user?.telefone),
                 onValueChange = { telefone = it },
                 isEditing = isEditing
             )
-
-            Divider(color = Color(0x66B0C4DE), thickness = 1.dp, modifier = Modifier.padding(horizontal = 5.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+            Divider(
+                color = Color(0x66B0C4DE),
+                thickness = 1.dp,
+                modifier = Modifier.padding(start = 36.dp)
+            )
         }
     }
 }
 
 
 @Composable
-fun DataItemEditable(
+fun DadosCadastro(
     drawableId: Int,
     label: String,
     value: String,
@@ -442,7 +392,7 @@ fun DataItemEditable(
             painter = painterResource(id = drawableId),
             contentDescription = label,
             tint = Color(0xFF1E4A7A),
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(35.dp)
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -452,7 +402,7 @@ fun DataItemEditable(
                 text = label,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E4A7A),
-                fontSize = 14.sp
+                fontSize = 16.sp
             )
 
             if (isEditing) {
@@ -460,16 +410,26 @@ fun DataItemEditable(
                     value = value,
                     onValueChange = onValueChange,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 20.dp),
+                        .fillMaxWidth(0.8f)
+                        .padding(top = 4.dp, end = 20.dp),
                     textStyle = TextStyle(fontSize = 14.sp),
-                    singleLine = true
+                    singleLine = true,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFF5F5F5),
+                        unfocusedContainerColor = Color(0xFFF5F5F5),
+                        disabledContainerColor = Color(0xFFF5F5F5),
+                        focusedIndicatorColor = Color(0xFF1E4A7A),
+                        unfocusedIndicatorColor = Color.Transparent,
+                        cursorColor = Color(0xFF1E4A7A)
+                    ),
+                    shape = RoundedCornerShape(10.dp)
                 )
             } else {
                 Text(
-                    text = value.ifEmpty { "Não informado" },
-                    color = Color.Gray,
-                    fontSize = 14.sp
+                    text = value,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Black
                 )
             }
         }
@@ -532,7 +492,7 @@ fun BarraDeNavegacaoPerfil(navController: NavHostController?) {
 }
 
 @Composable
-fun DataItem(drawableId: Int, label: String, value: String) {
+fun DadosPessoais(drawableId: Int, label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -541,20 +501,21 @@ fun DataItem(drawableId: Int, label: String, value: String) {
             painter = painterResource(id = drawableId),
             contentDescription = label,
             modifier = Modifier
-                .size(30.dp)
+                .size(35.dp)
                 .padding(end = 8.dp)
         )
 
         Column {
             Text(
                 text = label,
-                fontSize = 12.sp,
-                color = Color(0xFF7FBEF8)
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1E4A7A),
+                fontSize = 16.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = value,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Normal,
                 color = Color.Black
             )

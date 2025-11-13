@@ -11,60 +11,6 @@ import br.senai.sp.jandira.tcc_pas.model.LoginResponse
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactory
 import kotlinx.coroutines.launch
 
-
-//define a forma de dados que vai chegar, e cria funcao para login e deslogar
-//open class UserViewModel : ViewModel() {
-//    var userData by mutableStateOf<LoginResponse?>(null)
-//
-//    //logar
-//    fun setUser(user: LoginResponse) {
-//        userData = user
-//    }
-//
-//    //deslogar
-//    fun clearUser() {
-//        userData = null
-//    }
-//}
-
-
-
-//open class UserViewModel : ViewModel() {
-//    var userData by mutableStateOf<LoginResponse?>(null)
-//
-//    private val api = RetrofitFactory().getPasService() // ou o nome correto da sua factory
-//
-//    // logar
-//    fun setUser(user: LoginResponse) {
-//        userData = user
-//    }
-//
-//    // deslogar
-//    fun clearUser() {
-//        userData = null
-//    }
-//
-//    // ✅ atualizar dados do usuário
-//    fun atualizarUsuario(usuarioAtualizado: LoginResponse) {
-//        viewModelScope.launch {
-//            try {
-//                val id = usuarioAtualizado.id // ajuste se o campo for diferente
-//                val response = api.atualizarUsuario(id, usuarioAtualizado)
-//
-//                if (response.isSuccessful) {
-//                    userData = response.body()
-//                    Log.i("UserViewModel", "Usuário atualizado com sucesso!")
-//                } else {
-//                    Log.e("UserViewModel", "Erro ao atualizar: ${response.errorBody()?.string()}")
-//                }
-//            } catch (e: Exception) {
-//                Log.e("UserViewModel", "Falha ao atualizar usuário: ${e.message}")
-//            }
-//        }
-//    }
-//}
-
-
 open class UserViewModel : ViewModel() {
     var userData by mutableStateOf<LoginResponse?>(null)
 
@@ -80,13 +26,11 @@ open class UserViewModel : ViewModel() {
         userData = null
     }
 
-    // ✅ atualizar dados do usuário
     fun atualizarUsuario(usuarioAtualizado: LoginResponse) {
         viewModelScope.launch {
             try {
-                // ✅ Garante que a foto antiga não seja perdida
                 val usuarioComFoto = usuarioAtualizado.copy(
-                    foto = usuarioAtualizado.foto ?: userData?.foto
+                    foto_perfil =  usuarioAtualizado.foto_perfil ?: userData?.foto_perfil
                 )
 
                 val id = usuarioComFoto.id
@@ -95,7 +39,6 @@ open class UserViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     val dadosAtualizados = response.body()
 
-                    // ✅ Mantém campos antigos se vierem nulos da API
                     userData = userData?.copy(
                         nome = dadosAtualizados?.nome ?: userData?.nome.orEmpty(),
                         cpf = dadosAtualizados?.cpf ?: userData?.cpf.orEmpty(),
@@ -106,7 +49,7 @@ open class UserViewModel : ViewModel() {
                         cep = dadosAtualizados?.cep ?: userData?.cep.orEmpty(),
                         telefone = dadosAtualizados?.telefone ?: userData?.telefone.orEmpty(),
                         senha = dadosAtualizados?.senha ?: userData?.senha.orEmpty(),
-                        foto = dadosAtualizados?.foto ?: userData?.foto // 👈 mantém a antiga se vier null
+                        foto_perfil = dadosAtualizados?.foto_perfil ?: userData?.foto_perfil
                     )
 
                     Log.i("UserViewModel", "Usuário atualizado com sucesso!")
