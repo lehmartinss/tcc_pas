@@ -5,7 +5,9 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -103,16 +105,26 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
                     .height(200.dp)
                     .background(Color(0xFF1B5283))
             ) {
-                // Logo "PAS"
-                Image(
-                    painter = painterResource(id = br.senai.sp.jandira.tcc_pas.R.drawable.logo),
-                    contentDescription = "Logo PAS",
-                    modifier = Modifier
-                        .height(90.dp)
-                        .width(100.dp)
-                        .padding(start = 20.dp, top = 16.dp)
-                        .align(Alignment.TopStart)
-                )
+
+
+                Column(modifier = Modifier.height(500.dp).width(100.dp).padding(start = 10.dp),
+                    verticalArrangement = Arrangement.SpaceBetween) {
+                    // Logo "PAS"
+                    Image(
+                        painter = painterResource(id = br.senai.sp.jandira.tcc_pas.R.drawable.logo),
+                        contentDescription = "Logo PAS",
+                        modifier = Modifier
+                            .height(90.dp)
+                            .width(90.dp)
+                    )
+
+                    Image(
+                        painter = painterResource(id = br.senai.sp.jandira.tcc_pas.R.drawable.settings),
+                        contentDescription = "Configurações",
+                        modifier = Modifier.height(60.dp).width(40.dp)
+                            .clickable{navController.navigate("config")}
+                    )
+                }
 
 
                 Text(
@@ -139,7 +151,7 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
                         modifier = Modifier.fillMaxSize()
                     ) {
                         AsyncImage(
-                            model = user?.foto ?: "Carregando...",
+                            model = user?.foto_perfil ?: "Carregando...",
                             contentDescription = "Foto da unidade",
                             modifier = Modifier
                                 .fillMaxSize()
@@ -396,7 +408,7 @@ fun TelaPerfilPreview() {
                 email = "leticia@email.com",
                 cep = "06600-000",
                 telefone = "11999999999",
-                foto = null
+                foto_perfil = null
             )
         }
     }

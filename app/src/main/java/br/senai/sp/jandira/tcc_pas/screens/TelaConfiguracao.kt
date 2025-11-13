@@ -29,10 +29,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
+import br.senai.sp.jandira.tcc_pas.viewmodel.UserViewModel
 
 
 @Composable
-fun TelaConfiguracoes(navController: NavHostController) {
+fun TelaConfiguracoes(navController: NavHostController, userViewModel: UserViewModel) {
     var isDarkTheme by remember { mutableStateOf(false) }
     var caixadeDialogo by remember { mutableStateOf(false) }
 
@@ -44,7 +45,7 @@ fun TelaConfiguracoes(navController: NavHostController) {
                 .fillMaxSize()
                 .background(Color(0xFFF9FAFB))
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+//                .verticalScroll(rememberScrollState())
         ) {
             // 🔹 HEADER COM FOTO
             HeaderComFoto()
@@ -86,7 +87,13 @@ fun TelaConfiguracoes(navController: NavHostController) {
             },
             confirmButton = {
                 Button(
-                    onClick = { caixadeDialogo = false },
+                    onClick = {
+
+                        caixadeDialogo = false
+                        userViewModel.clearUser()
+                        navController.navigate("login")
+
+                              },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
                 ) {
                     Text("Sim")
@@ -483,13 +490,4 @@ fun BarraDeNavegacaoConfig(navController: NavHostController?) {
         )
     }
 
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewConfiguracoesScreen() {
-    // Controlador de navegação fake para o Preview
-    val navController = rememberNavController()
-
-    TelaConfiguracoes(navController = navController)
 }
