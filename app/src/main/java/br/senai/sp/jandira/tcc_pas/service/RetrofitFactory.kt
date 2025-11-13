@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 class RetrofitFactory {
 
-    private val BASE_URL = "https://api-fake-de-usuarios-com-json-server-3.onrender.com/"
+    private val BASE_URL = "https://api-fake-de-usuarios-com-json-server-4.onrender.com/"
 
 
     // utilizamos isto para configuração do cliente HTTP com tempo limite maior
@@ -18,9 +18,9 @@ class RetrofitFactory {
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(logging)
-        .connectTimeout(50, TimeUnit.SECONDS)
-        .readTimeout(50, TimeUnit.SECONDS)
-        .writeTimeout(50, TimeUnit.SECONDS)
+        .connectTimeout(80, TimeUnit.SECONDS)
+        .readTimeout(80, TimeUnit.SECONDS)
+        .writeTimeout(80, TimeUnit.SECONDS)
         .build()
 
     private  val retrofitFactory =

@@ -3,9 +3,7 @@ package br.senai.sp.jandira.tcc_pas.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
-// Adicione estas importações no topo do arquivo, se não existirem
 import com.google.android.gms.location.Priority
-
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts

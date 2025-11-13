@@ -16,6 +16,7 @@ import br.senai.sp.jandira.tcc_pas.model.UnidadePorIdResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -51,6 +52,12 @@ interface PasService {
 
     @GET("v1/pas/unidades/{id}")
     suspend fun getUnidadePorId(@Path("id") id: Int):   Response<UnidadePorIdResponse>
+
+
+        @PUT("usuarios/{id}")
+        suspend fun atualizarUsuario(@Path("id") id: String, @Body usuario: LoginResponse): Response<LoginResponse>
+
+
 
     // Open Street Map
 
