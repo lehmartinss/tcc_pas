@@ -404,7 +404,7 @@ fun SettingsList() {
     }
 }
 //
-// ==================== COMPONENTE: SETTINGS ITEM SIMPLE (SEM ÍCONES) ====================
+
 @Composable
 fun SettingsItemSimple(
     title: String,
