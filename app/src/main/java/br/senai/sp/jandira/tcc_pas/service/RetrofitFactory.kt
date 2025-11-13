@@ -18,9 +18,9 @@ class RetrofitFactory {
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(logging)
-        .connectTimeout(50, TimeUnit.SECONDS)
-        .readTimeout(50, TimeUnit.SECONDS)
-        .writeTimeout(50, TimeUnit.SECONDS)
+        .connectTimeout(80, TimeUnit.SECONDS)
+        .readTimeout(80, TimeUnit.SECONDS)
+        .writeTimeout(80, TimeUnit.SECONDS)
         .build()
 
     private  val retrofitFactory =

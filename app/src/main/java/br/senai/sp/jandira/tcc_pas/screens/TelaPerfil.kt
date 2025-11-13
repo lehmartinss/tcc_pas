@@ -16,6 +16,10 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,6 +42,7 @@ import br.senai.sp.jandira.tcc_pas.model.LoginResponse
 import br.senai.sp.jandira.tcc_pas.screens.DataItem
 import br.senai.sp.jandira.tcc_pas.viewmodel.UserViewModel
 import coil.compose.AsyncImage
+
 
 
 fun formatarCpf(cpf: String?): String {
@@ -230,74 +236,242 @@ fun TelaPerfil(navController: NavHostController, userViewModel: UserViewModel) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // CARD DADOS DE CADASTRO
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = RoundedCornerShape(16.dp)
+            CardDadosDeCadastro(
+                user = user, // esse é o user que vem do userViewModel.userData
+                onSalvarClick = { usuarioAtualizado ->
+                    // aqui você pode chamar a função do seu viewmodel para atualizar
+                    userViewModel.atualizarUsuario(usuarioAtualizado)
+                }
+            )
+
+
+//            // CARD DADOS DE CADASTRO
+//            Card(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp),
+//                colors = CardDefaults.cardColors(containerColor = Color.White),
+//                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+//                shape = RoundedCornerShape(16.dp)
+//            ) {
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(20.dp)
+//                ) {
+//                    Text(
+//                        text = "Dados de cadastro",
+//                        fontSize = 18.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = Color(0xFF1E4A7A)
+//                    )
+//
+//                    Spacer(modifier = Modifier.height(16.dp))
+//
+//                    DataItem(
+//                        drawableId = R.drawable.email,
+//                        label = "E-mail",
+//                        value = user?.email ?: "Carregando..."
+//                    )
+//
+//                    Divider(
+//                        color = Color(0x66B0C4DE),
+//                        thickness = 1.dp,
+//                        modifier = Modifier.padding(horizontal = 5.dp)
+//                    )
+//
+//                    Spacer(modifier = Modifier.height(12.dp))
+//
+//                    DataItem(
+//                        drawableId = R.drawable.endereco,
+//                        label = "Endereço",
+//                        value = user?.cep ?: "Carregando..."
+//                    )
+//
+//                    Divider(
+//                        color = Color(0x66B0C4DE),
+//                        thickness = 1.dp,
+//                        modifier = Modifier.padding(horizontal = 5.dp)
+//                    )
+//
+//
+//                    Spacer(modifier = Modifier.height(12.dp))
+//
+//                    DataItem(
+//                        drawableId = R.drawable.telefone,
+//                        label = "Telefone",
+//                        value = formatarTelefone(user?.telefone)
+//                    )
+//
+//                    Divider(
+//                        color = Color(0x66B0C4DE),
+//                        thickness = 1.dp,
+//                        modifier = Modifier.padding(horizontal = 5.dp)
+//                    )
+//
+//                }
+//
+//            }
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+    }
+}
+
+
+
+@Composable
+fun CardDadosDeCadastro(
+    user: LoginResponse?, // seu modelo de dados
+    onSalvarClick: (LoginResponse) -> Unit // callback para enviar para API
+) {
+    var isEditing by remember { mutableStateOf(false) }
+
+    // Estados locais para edição
+    var email by remember { mutableStateOf(user?.email ?: "") }
+    var endereco by remember { mutableStateOf(user?.cep ?: "") }
+    var telefone by remember { mutableStateOf(user?.telefone ?: "") }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp)
+                Text(
+                    text = "Dados de cadastro",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1E4A7A)
+                )
+
+                // Botão Editar/Salvar
+                TextButton(
+                    onClick = {
+                        if (isEditing) {
+                            // Aqui você chama a função para enviar à API
+                            val usuarioAtualizado = user?.copy(
+                                email = email,
+                                cep = endereco,
+                                telefone = telefone,
+                                nome = user.nome,
+                                cpf = user.cpf,
+                                naturalidade = user.naturalidade,
+                                nascimento = user.nascimento,
+                                nome_mae = user.nome_mae,
+                                senha = user.senha,
+                                foto = user.foto // 👈 mantém a foto antiga!
+                            )
+
+                            usuarioAtualizado?.let { onSalvarClick(it) }
+                        }
+                        isEditing = !isEditing
+                    }
                 ) {
                     Text(
-                        text = "Dados de cadastro",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1E4A7A)
+                        text = if (isEditing) "Salvar" else "Editar",
+                        color = if (isEditing) Color(0xFF1E4A7A) else Color.Gray
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    DataItem(
-                        drawableId = R.drawable.email,
-                        label = "E-mail",
-                        value = user?.email ?: "Carregando..."
-                    )
-
-                    Divider(
-                        color = Color(0x66B0C4DE),
-                        thickness = 1.dp,
-                        modifier = Modifier.padding(horizontal = 5.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    DataItem(
-                        drawableId = R.drawable.endereco,
-                        label = "Endereço",
-                        value = user?.cep ?: "Carregando..."
-                    )
-
-                    Divider(
-                        color = Color(0x66B0C4DE),
-                        thickness = 1.dp,
-                        modifier = Modifier.padding(horizontal = 5.dp)
-                    )
-
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    DataItem(
-                        drawableId = R.drawable.telefone,
-                        label = "Telefone",
-                        value = formatarTelefone(user?.telefone)
-                    )
-
-                    Divider(
-                        color = Color(0x66B0C4DE),
-                        thickness = 1.dp,
-                        modifier = Modifier.padding(horizontal = 5.dp)
-                    )
-
                 }
-
             }
-            Spacer(modifier = Modifier.height(10.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Campo: E-mail
+            DataItemEditable(
+                drawableId = R.drawable.email,
+                label = "E-mail",
+                value = email,
+                onValueChange = { email = it },
+                isEditing = isEditing
+            )
+
+            Divider(color = Color(0x66B0C4DE), thickness = 1.dp, modifier = Modifier.padding(horizontal = 5.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Campo: Endereço
+            DataItemEditable(
+                drawableId = R.drawable.endereco,
+                label = "Endereço",
+                value = endereco,
+                onValueChange = { endereco = it },
+                isEditing = isEditing
+            )
+
+            Divider(color = Color(0x66B0C4DE), thickness = 1.dp, modifier = Modifier.padding(horizontal = 5.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Campo: Telefone
+            DataItemEditable(
+                drawableId = R.drawable.telefone,
+                label = "Telefone",
+                value = telefone,
+                onValueChange = { telefone = it },
+                isEditing = isEditing
+            )
+
+            Divider(color = Color(0x66B0C4DE), thickness = 1.dp, modifier = Modifier.padding(horizontal = 5.dp))
+        }
+    }
+}
+
+
+@Composable
+fun DataItemEditable(
+    drawableId: Int,
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isEditing: Boolean
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = drawableId),
+            contentDescription = label,
+            tint = Color(0xFF1E4A7A),
+            modifier = Modifier.size(24.dp)
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column {
+            Text(
+                text = label,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1E4A7A),
+                fontSize = 14.sp
+            )
+
+            if (isEditing) {
+                TextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 20.dp),
+                    textStyle = TextStyle(fontSize = 14.sp),
+                    singleLine = true
+                )
+            } else {
+                Text(
+                    text = value.ifEmpty { "Não informado" },
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+            }
         }
     }
 }
