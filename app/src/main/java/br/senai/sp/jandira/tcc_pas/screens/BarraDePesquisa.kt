@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.forEach
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +35,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
@@ -55,7 +55,6 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -76,7 +75,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -124,50 +122,67 @@ import kotlin.math.pow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: PaddingValues = PaddingValues(top = 50.dp, start = 20.dp, end = 20.dp),
-                              ) {
+) {
 
 
-    // controla se o usuário já deu acesso à localização
+    // 🧩 PERMISSÃO → controla se o usuário já deu acesso à localização
     val locationPermissionGranted = remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted -> locationPermissionGranted.value = granted }
 
 
-    //controlar o valor do slider de distância em km
+// 🧩 NOVO: State para controlar o valor do slider de distância em km
     var distanciaSelecionada by remember { mutableStateOf(20f) }
 
 
     // osmdroid
     val context = LocalContext.current
 
-    // guardar a localização
+    // State para guardar a localização
     var localizacaoUsuario by remember { mutableStateOf<GeoPoint?>(null) }
+
+    fun calculateDistance(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val R = 6371 // Raio da Terra em km
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2)
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return R * c // Distância em km
+    }
 
     // FusedLocationProviderClient para obter a localização
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
+
     var mapView: MapView? by remember { mutableStateOf(null) }
     val scope = rememberCoroutineScope()
 
-    // pede permissão e busca a localização
-    LaunchedEffect(locationPermissionGranted.value) {
+    // 🧩 PERMISSÃO E OBTENÇÃO DE LOCALIZAÇÃO → pede permissão e busca a localização
+    LaunchedEffect(locationPermissionGranted.value) { // Executa quando a permissão muda
         val granted = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
         if (!granted) {
-
+            // Se não tem permissão, pede
             launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         } else {
+            // Se TEM permissão, busca a localização atual
             locationPermissionGranted.value = true
+
+            // Verificação de segurança para a permissão (exigido pelo Android)
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                // Usando getCurrentLocation para obter uma localização única e precisa
                 fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY,
                     CancellationTokenSource().token)
                     .addOnSuccessListener { location ->
                         if (location != null) {
-                  
+                            // Sucesso! Armazena a localização no state
+                            // Corrigido: Usa org.osmdroid.util.GeoPoint
                             localizacaoUsuario = GeoPoint(location.latitude, location.longitude)
 
                             Log.d("LocalizacaoUsuario", "Lat: ${location.latitude}, Lont: ${location.longitude}")
@@ -182,6 +197,9 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
         }
     }
 
+
+
+
     // menu quando o usuario clica na seta
     var expandirMenu by remember { mutableStateOf(false) }
 
@@ -192,10 +210,10 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
-    // guardar os resultados BRUTOS da API
+    // 🧩 NOVO: State para guardar os resultados BRUTOS da API
     var resultadosBrutosApi by remember { mutableStateOf<List<UnidadeDeSaude>>(emptyList()) }
 
-    // guardar os resultados FILTRADOS que serão exibidos na UI
+// 🧩 NOVO: State para guardar os resultados FILTRADOS que serão exibidos na UI
     var unidadesFiltradasExibidas by remember { mutableStateOf<List<UnidadeDeSaude>>(emptyList()) }
 
     var especialidadeSelecionada by remember { mutableStateOf<String?>(null) }
@@ -216,7 +234,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
     var todasSugestoes by remember { mutableStateOf<List<String>>(emptyList()) }
 
     fun calcularDistancia(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
-        val R = 6371.0
+        val R = 6371.0 // Raio da Terra em km
         val dLat = Math.toRadians(lat2 - lat1)
         val dLng = Math.toRadians(lng2 - lng1)
         val a = Math.sin(dLat / 2).pow(2.0) +
@@ -428,6 +446,10 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
             }
         }
 
+        var sliderPosition by remember { mutableStateOf(0f..100f) }
+
+
+
         // menu de sugestões
         AnimatedVisibility(
             visible = textoPesquisa.isNotBlank() && sugestoes.isNotEmpty()
@@ -472,7 +494,6 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
                         .verticalScroll(rememberScrollState())
                         .padding(top = 90.dp, bottom = 32.dp)
                 ) {
-
                     FiltroSingleSelectComFoto(
                         titulo = "Especialidades",
                         lista = especialidades.map { ItemComFoto(it.nome, it.foto_claro) },
@@ -502,23 +523,45 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
                     val range = 0f..25f
                     val steps = ((range.endInclusive - range.start) / stepSize).toInt() - 1
 
-                    FiltroDistanciaComFoto(
-                        icone = R.drawable.distancia,
-                        onValorSelecionado = { valor ->
-                            // aqui você pode usar o valor selecionado do slider (ex: filtrar unidades)
-                            Log.d("FILTRO_DISTANCIA", "Distância selecionada: $valor km")
-                        }
-                    )
+                    val min = range.start
+                    val max = range.endInclusive
 
-//
-//                    Slider(
-//                        modifier = Modifier.padding(horizontal = 20.dp),
-//                        value = sliderPosition,
-//                        onValueChange = { sliderPosition = it },
-//                        valueRange = range,
-//                        steps = steps
-//                    )
-//                    Text(text = "Valor selecionado: ${sliderPosition.toInt()}")
+                    val stepValues = List(steps + 1) { i ->
+                        min + (i * (max - min) / steps)
+                    }
+
+                    var stepRange = 0
+
+                    Column {
+                        Slider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            value = sliderPosition,
+                            onValueChange = { sliderPosition = it },
+                            valueRange = range,
+                            steps = steps // (100/5) - 1, define os pontos onde o slider "para"
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp), // Pequeno ajuste para alinhar melhor
+                            horizontalArrangement = Arrangement.SpaceBetween // Distribui os textos igualmente
+                        ) {
+                            // Cria um Text para cada passo definido
+                            stepValues.forEach { step ->
+                                Text(
+                                    text = "${stepRange} km",
+                                    fontSize = 12.sp,
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center
+                                )
+
+                                stepRange = stepRange + 5
+                            }
+                        }
+                    }
+
+
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -554,7 +597,10 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
                                     }
 
 
-                                    if (localizacaoUsuario != null) {
+                                    // filtro por distância
+                                    if (localizacaoUsuario != null && sliderPosition > 0f) {
+
+                                        Log.e("FILTRO", "FILTRANDO POR DISTANCIA")
                                         val apiOSM = RetrofitFactoryOSM().getOSMService()
                                         val raioKm = sliderPosition
 
@@ -585,37 +631,7 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
                                         }
                                     }
 
-                                    // filtro por distância (igual à TelaMapa)
-                                    if (localizacaoUsuario != null) {
-                                        val apiOSM = RetrofitFactoryOSM().getOSMService()
-                                        val raioKm = sliderPosition
 
-                                        unidadesFiltradas = unidadesFiltradas.filter { unidade ->
-                                            try {
-                                                val cep = unidade.local.endereco.firstOrNull()?.cep ?: return@filter false
-
-                                                val resp = apiOSM.buscarPorCep(cep)
-                                                val lista = resp.body()
-                                                if (lista.isNullOrEmpty()) return@filter false
-
-                                                val geo = lista.first()
-                                                val lat = geo.lat.toDouble()
-                                                val lon = geo.lon.toDouble()
-
-                                                val distancia = calcularDistancia(
-                                                    localizacaoUsuario!!.latitude,
-                                                    localizacaoUsuario!!.longitude,
-                                                    lat,
-                                                    lon
-                                                )
-
-                                                distancia <= raioKm
-                                            } catch (e: Exception) {
-                                                Log.e("FILTRO_DISTANCIA", "Erro ao calcular distância: ${e.message}")
-                                                false
-                                            }
-                                        }
-                                    }
 
                                     withContext(Dispatchers.Main) {
                                         navController.navigate("mapafiltrado") { launchSingleTop = true }
@@ -744,103 +760,6 @@ fun FiltroSingleSelectComFoto(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FiltroDistanciaComFoto(
-    icone: Int,
-    titulo: String = "Distância",
-    onValorSelecionado: (Float) -> Unit
-) {
-    var mostrar by remember { mutableStateOf(false) }
-    var sliderPosition by remember { mutableStateOf(0f) }
-
-    val stepSize = 5f
-    val range = 0f..25f
-    val steps = ((range.endInclusive - range.start) / stepSize).toInt() - 1
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
-        ) {
-            Image(
-                painter = painterResource(icone),
-                contentDescription = titulo,
-                modifier = Modifier
-                    .size(25.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = titulo,
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.Black
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { mostrar = !mostrar }) {
-                Icon(
-                    imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null
-                )
-            }
-        }
-
-        // Quando clicar, mostra o slider
-        if (mostrar) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 10.dp)
-            ) {
-                // Slider
-                Slider(
-                    value = sliderPosition,
-                    onValueChange = {
-                        sliderPosition = it
-                        onValorSelecionado(it)
-                    },
-                    valueRange = range,
-                    steps = steps,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .graphicsLayer {
-                            scaleY = 0.7f // Deixa a barra mais fina
-                        },
-                    colors = SliderDefaults.colors(
-                        thumbColor = Color(0xFF1E5FA3),
-                        activeTrackColor = Color(0xFF0B2A46),
-                        inactiveTrackColor = Color(0xFF7FBEF8)
-                    ),
-
-
-                )
-
-                // Rótulos de distância (0km, 5km, etc.)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    for (valor in range.start.toInt()..range.endInclusive.toInt() step stepSize.toInt()) {
-                        Text(
-                            text = "${valor}km",
-                            fontSize = 15.sp,
-                            color = Color.Black
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-            }
-        }
-    }
-}
 
 // funcao para puxar os icons que nao vem da api em disponibilidade, os icons aqui foi colocado manualmente
 @Composable
@@ -855,6 +774,7 @@ fun FiltroSingleSelect(
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
+        // 🔹 Cabeçalho (com imagem e seta)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -890,6 +810,7 @@ fun FiltroSingleSelect(
                         .clickable { onSelect(if (selecionado == item) null else item) }
                         .padding(horizontal = 24.dp, vertical = 10.dp)
                 ) {
+                    // 🖼️ Define imagem com base no item
                     val imagem = when (item) {
                         "Sim" -> R.drawable.sim
                         "Não" -> R.drawable.nao
