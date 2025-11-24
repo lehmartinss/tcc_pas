@@ -47,6 +47,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,6 +71,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.model.CampanhaResponse
+import br.senai.sp.jandira.tcc_pas.model.Categoria
+import br.senai.sp.jandira.tcc_pas.model.CategoriaWrapper
+import br.senai.sp.jandira.tcc_pas.model.Endereco
+import br.senai.sp.jandira.tcc_pas.model.LocalWrapper
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaudeResponse
 import br.senai.sp.jandira.tcc_pas.model.UnidadeResponse
@@ -77,6 +82,7 @@ import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltrar
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltroUnidade
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import org.w3c.dom.Text
 
 
@@ -152,6 +158,21 @@ private fun BarraDeNavegacaoInfoUnidadePreview(){
     }
 }
 
+fun formatarTempoInformacao(tempo: String): String {
+    if (!tempo.contains(":")) return tempo
+
+    val partes = tempo.split(":")
+    val horas = partes[0].toIntOrNull() ?: 0
+    val minutos = partes[1].toIntOrNull() ?: 0
+
+    return when {
+        horas > 0 && minutos > 0 -> "${horas}h:${minutos}min"
+        horas > 0 -> "${horas}h"
+        minutos > 0 -> "${minutos}min"
+        else -> "0min"
+    }
+}
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -194,42 +215,35 @@ fun TelaInformacaoUnidade(
             Spacer(modifier = Modifier.height(32.dp))
             Card(
                 modifier = Modifier
-                    .size(width = 350.dp, height = 220.dp)
-                    .border(1.5.dp, Color(0xFF1E5FA3), RoundedCornerShape(12.dp))
-                    .shadow(
-                        elevation = 20.dp,
-                        shape = RoundedCornerShape(12.dp),
-                        clip = false,
-                        ambientColor = Color.Black.copy(alpha = 0.25f),
-                        spotColor = Color.Black.copy(alpha = 0.35f)
-                    ),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .shadow(4.dp, RoundedCornerShape(24.dp)),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                )
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    AsyncImage(
-                        model = unidade?.foto,
-                        contentDescription = "Foto da unidade",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+                Image(
+                    painter = rememberAsyncImagePainter(unidade?.foto),
+                    contentDescription = "Foto da unidade",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(24.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
 
         // nome
         item {
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(19.dp))
             Text(
                 text = unidade?.nome ?: "-",
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF1E5FA3),
-                textAlign = TextAlign.Start
+                textAlign = TextAlign.Center
             )
         }
         // tempo de espera
@@ -244,8 +258,8 @@ fun TelaInformacaoUnidade(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = unidade?.tempo_espera_geral ?: "Tempo de espera não disponível ",
-                fontSize = 20.sp,
+                text = unidade?.tempo_espera_geral?.let { formatarTempoInformacao(it) } ?: "Tempo de espera não disponível",
+                    fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E5FA3),
                 textAlign = TextAlign.Center
@@ -425,7 +439,7 @@ fun TelaInformacaoUnidade(
                                         )
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Text(
-                                            text = especialidade.tempo_espera ?: "-",
+                                            text = especialidade.tempo_espera?.let { formatarTempoInformacao(it) } ?: "-",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = Color(0xFFEAF2FB)
@@ -453,8 +467,4 @@ fun TelaInformacaoUnidade(
         }
     }
 }
-
-
-
-
 

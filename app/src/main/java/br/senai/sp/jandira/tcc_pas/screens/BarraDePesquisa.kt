@@ -55,6 +55,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -75,6 +76,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -519,47 +521,57 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
                     )
 
                     var sliderPosition by remember { mutableStateOf(0f) }
-                    val stepSize = 5f
-                    val range = 0f..25f
-                    val steps = ((range.endInclusive - range.start) / stepSize).toInt() - 1
 
-                    val min = range.start
-                    val max = range.endInclusive
-
-                    val stepValues = List(steps + 1) { i ->
-                        min + (i * (max - min) / steps)
+                    FiltroDistanciaComFoto(
+                        icone = R.drawable.distancia,
+                        titulo = "Distância",
+                        valorAtual = sliderPosition
+                    ) { novoValor ->
+                        sliderPosition = novoValor
                     }
 
-                    var stepRange = 0
 
-                    Column {
-                        Slider(
-                            modifier = Modifier.padding(horizontal = 20.dp),
-                            value = sliderPosition,
-                            onValueChange = { sliderPosition = it },
-                            valueRange = range,
-                            steps = steps // (100/5) - 1, define os pontos onde o slider "para"
-                        )
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp), // Pequeno ajuste para alinhar melhor
-                            horizontalArrangement = Arrangement.SpaceBetween // Distribui os textos igualmente
-                        ) {
-                            // Cria um Text para cada passo definido
-                            stepValues.forEach { step ->
-                                Text(
-                                    text = "${stepRange} km",
-                                    fontSize = 12.sp,
-                                    color = Color.Gray,
-                                    textAlign = TextAlign.Center
-                                )
-
-                                stepRange = stepRange + 5
-                            }
-                        }
-                    }
+//                    val stepSize = 5f
+//                    val range = 0f..25f
+//                    val steps = ((range.endInclusive - range.start) / stepSize).toInt() - 1
+//
+//                    val min = range.start
+//                    val max = range.endInclusive
+//
+//                    val stepValues = List(steps + 1) { i ->
+//                        min + (i * (max - min) / steps)
+//                    }
+//
+//                    var stepRange = 0
+//
+//                    Column {
+//                        Slider(
+//                            modifier = Modifier.padding(horizontal = 20.dp),
+//                            value = sliderPosition,
+//                            onValueChange = { sliderPosition = it },
+//                            valueRange = range,
+//                            steps = steps // (100/5) - 1, define os pontos onde o slider "para"
+//                        )
+//
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(horizontal = 8.dp), // Pequeno ajuste para alinhar melhor
+//                            horizontalArrangement = Arrangement.SpaceBetween // Distribui os textos igualmente
+//                        ) {
+//                            // Cria um Text para cada passo definido
+//                            stepValues.forEach { step ->
+//                                Text(
+//                                    text = "${stepRange} km",
+//                                    fontSize = 12.sp,
+//                                    color = Color.Gray,
+//                                    textAlign = TextAlign.Center
+//                                )
+//
+//                                stepRange = stepRange + 5
+//                            }
+//                        }
+//                    }
 
 
 
@@ -835,6 +847,95 @@ fun FiltroSingleSelect(
                         fontWeight = if (selecionado == item) FontWeight.Bold else FontWeight.Normal
                     )
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FiltroDistanciaComFoto(
+    icone: Int,
+    titulo: String = "Distância",
+    valorAtual: Float,
+    onValorSelecionado: (Float) -> Unit
+) {
+    var mostrar by remember { mutableStateOf(false) }
+
+    val stepSize = 5f
+    val range = 0f..25f
+    val steps = ((range.endInclusive - range.start) / stepSize).toInt() - 1
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
+        ) {
+            Image(
+                painter = painterResource(icone),
+                contentDescription = titulo,
+                modifier = Modifier
+                    .size(25.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = { mostrar = !mostrar }) {
+                Icon(
+                    imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
+                )
+            }
+        }
+
+        if (mostrar) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 10.dp)
+            ) {
+
+                Slider(
+                    value = valorAtual,
+                    onValueChange = { onValorSelecionado(it) },
+                    valueRange = range,
+                    steps = steps,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .graphicsLayer { scaleY = 0.7f },
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color(0xFF1E5FA3),
+                        activeTrackColor = Color(0xFF0B2A46),
+                        inactiveTrackColor = Color(0xFF7FBEF8)
+                    )
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    for (valor in range.start.toInt()..range.endInclusive.toInt() step stepSize.toInt()) {
+                        Text(
+                            text = "${valor}km",
+                            fontSize = 15.sp,
+                            color = Color.Black
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
             }
         }
     }

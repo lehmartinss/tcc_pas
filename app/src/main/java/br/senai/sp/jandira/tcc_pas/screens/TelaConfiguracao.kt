@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
@@ -44,46 +46,34 @@ fun TelaConfiguracoes(navController: NavHostController, userViewModel: UserViewM
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF9FAFB))
                 .padding(paddingValues)
         ) {
 
-            // 🔹 CONTEÚDO PRINCIPAL
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF9FAFB))
-                    .zIndex(0f)
+                    .background(Color(0xFFEAEAEA))
             ) {
                 HeaderComFoto(userViewModel)
 
-                // 🔹 ÁREA CINZA ARREDONDADA
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                        .background(Color(0xFFF2F2F2))
-                        .padding(vertical = 30.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    HeaderSection(
-                        isDarkTheme = isDarkTheme,
-                        onThemeToggle = { isDarkTheme = !isDarkTheme },
-                        onLogoutClick = { caixadeDialogo = true }
-                    )
+                Spacer(modifier = Modifier.height(40.dp))
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                HeaderSection(
+                    isDarkTheme = isDarkTheme,
+                    onThemeToggle = { isDarkTheme = !isDarkTheme },
+                    onLogoutClick = { caixadeDialogo = true }
+                )
 
-                    SettingsList()
-                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SettingsList(navController)
             }
 
-            // 🔹 FOTO DO USUÁRIO SOBREPOSTA (NA FRENTE)
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .offset(y = 98.dp) // ajuste conforme o header
-                    .size(120.dp)
+                    .offset(y = 98.dp)
+                    .size(130.dp)
                     .zIndex(10f)
                     .shadow(
                         elevation = 12.dp,
@@ -111,7 +101,7 @@ fun TelaConfiguracoes(navController: NavHostController, userViewModel: UserViewM
         }
     }
 
-    // 🔹 Diálogo de confirmação
+    // 🔹 DIALOG
     if (caixadeDialogo) {
         AlertDialog(
             onDismissRequest = { caixadeDialogo = false },
@@ -148,6 +138,7 @@ fun TelaConfiguracoes(navController: NavHostController, userViewModel: UserViewM
     }
 }
 
+
 @Composable
 fun HeaderComFoto(userViewModel: UserViewModel) {
     val user = userViewModel.userData
@@ -156,23 +147,8 @@ fun HeaderComFoto(userViewModel: UserViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.header),
-            contentDescription = "Imagem de fundo do header",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0x66000000)),
-            contentAlignment = Alignment.Center
-        ) {
-
-        }
-    }
+            .background(Color(0xFF1B5283))
+    )
 }
 
 @Composable
@@ -223,26 +199,33 @@ fun HeaderSection(isDarkTheme: Boolean, onThemeToggle: () -> Unit, onLogoutClick
 }
 
 @Composable
-fun SettingsList() {
+fun SettingsList(navController: NavController) {
     var isDarkTheme by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        SettingsItemSimple("Tema 🌙", null) { isDarkTheme = !isDarkTheme }
-        Spacer(modifier = Modifier.height(24.dp))
-        SettingsItemSimple("Idioma", "Português") {}
-        Spacer(modifier = Modifier.height(24.dp))
+
         SettingsItemSimple("Contato", "pas.suporte@gmail.com") {}
         Spacer(modifier = Modifier.height(24.dp))
-        SettingsItemSimple("Termos de uso", null) {}
+
+        // 👉 Navegar para Termos
+        SettingsItemSimple("Termos de uso", null) {
+            navController.navigate("termos")
+        }
         Spacer(modifier = Modifier.height(24.dp))
-        SettingsItemSimple("Sobre", null) {}
+
+        // 👉 Navegar para Sobre
+        SettingsItemSimple("Sobre", null) {
+            navController.navigate("sobre")
+        }
     }
 }
+
 
 @Composable
 fun SettingsItemSimple(title: String, subtitle: String?, onClick: () -> Unit) {

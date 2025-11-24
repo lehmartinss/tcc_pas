@@ -224,7 +224,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xffF9FAFB))
-            .padding(top = 18.dp)
+            .padding(top = 15.dp)
     ) {
 
         Box(
@@ -239,7 +239,7 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 70.dp),
+                .padding(horizontal = 20.dp, vertical = 110.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(bottom = 80.dp)
         ) {
@@ -350,37 +350,6 @@ fun TelaDescricacaoCampanhas(paddingValues: PaddingValues, id: Int,  navControll
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
-
-//            item {
-//                ExpandableSection(
-//                    title = "Localização",
-//                    expanded = expandedSection == "localizacao",
-//                    onExpandChange = {
-//                        expandedSection =
-//                            if (expandedSection == "localizacao") null else "localizacao"
-//                    },
-//                    content = {
-//                        Column(modifier = Modifier.padding(start = 8.dp)) {
-//                            campanha?.cidades?.forEach { cidadeItem ->
-//
-//                                InfoText("Cidade", cidadeItem.cidade)
-//
-//                                cidadeItem.unidades_disponiveis.forEach { unidade ->
-//                                    Text(
-//                                        text = "- $unidade",
-//                                        color = Color(0xffF9FAFB),
-//                                        fontSize = 14.sp,
-//                                        modifier = Modifier.padding(start = 16.dp, bottom = 2.dp)
-//                                    )
-//                                }
-//
-//                                Spacer(modifier = Modifier.height(6.dp))
-//                            }
-//                        }
-//                    }
-//                )
-//                Spacer(modifier = Modifier.height(10.dp))
-//            }
 
             item {
                 ExpandableSection(
