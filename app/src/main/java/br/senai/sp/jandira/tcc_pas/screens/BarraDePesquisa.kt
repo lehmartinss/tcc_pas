@@ -1,6 +1,7 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
 import android.Manifest
+import android.R.attr.scaleY
 import android.content.pm.PackageManager
 import android.net.Uri
 import com.google.android.gms.location.Priority
@@ -55,6 +56,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -75,6 +77,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -673,6 +676,86 @@ fun disponibilidadeParaInt(valor: String?): Int? {
         else -> null
     }
 }
+
+// funcao para puxar os icons que nao vem da api em disponibilidade, os icons aqui foi colocado manualmente
+@Composable
+fun FiltroSingleSelect(
+    titulo: String,
+    lista: List<String>,
+    selecionado: String?,
+    onSelect: (String?) -> Unit,
+    icone: Int
+) {
+    var mostrar by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        // 🔹 Cabeçalho (com imagem e seta)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
+        ) {
+            Image(
+                painter = painterResource(id = icone),
+                contentDescription = titulo,
+                modifier = Modifier
+                    .size(25.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(titulo, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = { mostrar = !mostrar }) {
+                Icon(
+                    imageVector = if (mostrar) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
+                )
+            }
+        }
+
+        if (mostrar) {
+            lista.forEach { item ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(if (selecionado == item) null else item) }
+                        .padding(horizontal = 24.dp, vertical = 10.dp)
+                ) {
+                    // 🖼️ Define imagem com base no item
+                    val imagem = when (item) {
+                        "Sim" -> R.drawable.sim
+                        "Não" -> R.drawable.nao
+                        else -> null
+                    }
+
+                    imagem?.let {
+                        Image(
+                            painter = painterResource(id = imagem),
+                            contentDescription = item,
+                            modifier = Modifier
+                                .size(15.dp)
+                                .clip(RoundedCornerShape(6.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    Text(
+                        text = item,
+                        color = if (selecionado == item) Color(0xFF7FBEF8) else Color.Black,
+                        fontWeight = if (selecionado == item) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 
 // funcao para puxar os icons que vem da api em cada filtro
