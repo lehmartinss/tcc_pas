@@ -64,7 +64,9 @@ data class Endereco(
     val bairro: String,
     val cidade: String,
     val estado: String,
-    val regiao: String
+    val regiao: String,
+    val latitude: String,
+    val longitude: String
 )
 
 data class CategoriaWrapper(

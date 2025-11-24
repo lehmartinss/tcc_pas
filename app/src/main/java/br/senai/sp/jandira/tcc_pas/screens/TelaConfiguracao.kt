@@ -1,5 +1,9 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
 import br.senai.sp.jandira.tcc_pas.viewmodel.UserViewModel
 import coil.compose.AsyncImage
+import androidx.core.net.toUri
 
 @Composable
 fun TelaConfiguracoes(navController: NavHostController, userViewModel: UserViewModel) {
@@ -222,9 +228,12 @@ fun HeaderSection(isDarkTheme: Boolean, onThemeToggle: () -> Unit, onLogoutClick
     }
 }
 
+@SuppressLint("QueryPermissionsNeeded")
 @Composable
 fun SettingsList() {
     var isDarkTheme by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -236,7 +245,35 @@ fun SettingsList() {
         Spacer(modifier = Modifier.height(24.dp))
         SettingsItemSimple("Idioma", "Português") {}
         Spacer(modifier = Modifier.height(24.dp))
-        SettingsItemSimple("Contato", "pas.suporte@gmail.com") {}
+        SettingsItemSimple("Contato", "pas.suporte@gmail.com", onClick = {
+            val email = "pas.suporte@gmail.com"
+
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "message/rfc822"
+                putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+                putExtra(Intent.EXTRA_SUBJECT, "Assunto aqui")
+            }
+
+// Verifica se o Gmail está instalado
+            val gmailPackage = "com.google.android.gm"
+            val pm = context.packageManager
+
+            val isGmailInstalled = try {
+                pm.getPackageInfo(gmailPackage, 0)
+                true
+            } catch (e: Exception) {
+                false
+            }
+
+            if (isGmailInstalled) {
+                // força abrir o Gmail direto
+                intent.setPackage(gmailPackage)
+                context.startActivity(intent)
+            } else {
+                // fallback: abre lista de apps de email
+                context.startActivity(Intent.createChooser(intent, "Enviar email"))
+            }
+        })
         Spacer(modifier = Modifier.height(24.dp))
         SettingsItemSimple("Termos de uso", null) {}
         Spacer(modifier = Modifier.height(24.dp))

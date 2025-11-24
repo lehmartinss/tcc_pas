@@ -73,8 +73,11 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
+import br.senai.sp.jandira.tcc_pas.map.CustomInfoWindow
+import br.senai.sp.jandira.tcc_pas.model.Filtros
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
+import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryFiltrar
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryOSM
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import com.google.android.gms.location.LocationServices
@@ -134,14 +137,42 @@ fun TelaMapaNavBar(navController: NavHostController) {
                         scope.launch {
                             isLoading = true
 
-                            // carrega a localização do usuário
-                            val response = api.buscarPorCoord(loc.latitude, loc.longitude)
-                            val item = response.body()
-                            if (item != null) {
-                                val geoPoint = GeoPoint(item.lat.toDouble(), item.lon.toDouble())
-                                latitude = geoPoint.latitude
-                                longitude = geoPoint.longitude
-                                mapView?.controller?.setCenter(geoPoint)
+                            // Primeiro, coloca o marker do usuário
+                            val userGeo = GeoPoint(loc.latitude, loc.longitude)
+                            mapView?.controller?.setCenter(userGeo)
+
+                            val userMarker = Marker(mapView).apply {
+                                position = userGeo
+                                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                                title = "Você está aqui"
+                                icon = ContextCompat.getDrawable(context, R.drawable.marker)
+                                setInfoWindowAnchor(Marker.ANCHOR_CENTER, -0.1f)
+                                infoWindow = CustomInfoWindow(R.layout.custom_infowindow, mapView!!)
+                            }
+                            mapView?.overlays?.add(userMarker)
+
+                            // Agora busca todas as unidades da API
+                            val apiUnidades = RetrofitFactoryFiltrar().getUnidadesService()
+                            val response = apiUnidades.filtrarUnidades(Filtros(categoria = null,
+                                especialidade = null,
+                                disponibilidade24h = null)) // ou o endpoint que retorna todas
+                            val todasUnidades = response.body()?.unidadesDeSaude?.flatten().orEmpty()
+
+                            // Adiciona cada unidade como marker
+                            todasUnidades.forEach { unidade ->
+                                val endereco = unidade.local.endereco.firstOrNull()
+                                if (endereco != null) {
+                                    val unidadeGeo = GeoPoint(endereco.latitude.toDouble(), endereco.longitude.toDouble())
+                                    val marker = Marker(mapView).apply {
+                                        position = unidadeGeo
+                                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                                        title = unidade.nome
+                                        icon = ContextCompat.getDrawable(context, R.drawable.marker)
+                                        setInfoWindowAnchor(Marker.ANCHOR_CENTER, -0.1f)
+                                        infoWindow = CustomInfoWindow(R.layout.custom_infowindow, mapView!!)
+                                    }
+                                    mapView?.overlays?.add(marker)
+                                }
                             }
 
                             isLoading = false
@@ -153,6 +184,7 @@ fun TelaMapaNavBar(navController: NavHostController) {
             }
         }
     }
+
 
 
     val density = LocalDensity.current

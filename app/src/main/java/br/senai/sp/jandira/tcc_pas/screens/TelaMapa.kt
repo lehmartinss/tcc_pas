@@ -1,7 +1,6 @@
 package br.senai.sp.jandira.tcc_pas.screens
 
 import android.Manifest
-import android.R.attr.onClick
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.util.Log
@@ -26,10 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
@@ -40,14 +37,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -64,22 +59,18 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import br.senai.sp.jandira.tcc_pas.R
+import br.senai.sp.jandira.tcc_pas.map.CustomInfoWindow
 import br.senai.sp.jandira.tcc_pas.model.UnidadeDeSaude
-import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryCampanha
 import br.senai.sp.jandira.tcc_pas.service.RetrofitFactoryOSM
 import br.senai.sp.jandira.tcc_pas.ui.theme.Tcc_PasTheme
 import com.google.android.gms.location.LocationServices
@@ -88,9 +79,6 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
-import kotlin.coroutines.EmptyCoroutineContext.get
-
-
 
 
 @Composable
@@ -187,9 +175,16 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
                                             val marker = Marker(mapView)
 
                                             marker.position = geoPoint
+                                            // ancora o marcador no centro inferior
                                             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                                             marker.title = unidade.nome
                                             marker.icon = ContextCompat.getDrawable(context, R.drawable.marker)
+
+                                            // sobe o balão acima do pin
+                                            marker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, -0.1f)
+
+                                            // aplica sua InfoWindow customizada
+                                            marker.infoWindow = CustomInfoWindow(R.layout.custom_infowindow, mapView!!)
 
                                             // adiciona o marcador ao mapa (sem recriar)
                                             mapView?.overlays?.add(marker)
@@ -203,9 +198,6 @@ fun TelaMapa(navController: NavHostController, unidades: List<UnidadeDeSaude> = 
                                                 mapView?.controller?.setCenter(geoPoint)
                                                 primeiraUnidadeCentralizada = true
                                             }
-
-                                            Log.i("MAPA", "Marcador adicionado: ${unidade.nome} -> ${geo.display_name}")
-
                                         } else {
                                             Log.w("MAPA", "Nenhum resultado encontrado para o CEP: $endereco")
                                         }
