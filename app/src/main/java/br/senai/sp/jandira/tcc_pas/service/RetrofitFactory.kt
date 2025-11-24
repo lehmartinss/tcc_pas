@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 class RetrofitFactory {
 
-    private val BASE_URL = "https://api-fake-de-usuarios-com-json-server-3.onrender.com/"
+    private val BASE_URL = "https://api-fake-de-usuarios-com-json-server-4.onrender.com/"
 
 
     // utilizamos isto para configuração do cliente HTTP com tempo limite maior
@@ -18,18 +18,17 @@ class RetrofitFactory {
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(logging)
-        .connectTimeout(80, TimeUnit.SECONDS)
-        .readTimeout(80, TimeUnit.SECONDS)
-        .writeTimeout(80, TimeUnit.SECONDS)
+        .connectTimeout(100, TimeUnit.SECONDS)
+        .readTimeout(100, TimeUnit.SECONDS)
+        .writeTimeout(100, TimeUnit.SECONDS)
         .build()
 
-    private  val retrofitFactory =
-        Retrofit
-            .Builder()
+    private val retrofitFactory =
+        Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(client) // <-- AQUI ESTAVA FALTANDO
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-
 
     fun getPasService(): PasService{
         return retrofitFactory.create(PasService::class.java)

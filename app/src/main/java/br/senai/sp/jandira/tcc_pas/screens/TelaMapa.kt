@@ -429,6 +429,20 @@ fun BarraDeNavegacaoMapa(navController: NavHostController?) {
 }
 
 
+fun formatarTempo(tempo: String): String {
+    if (!tempo.contains(":")) return tempo
+
+    val partes = tempo.split(":")
+    val horas = partes[0].toIntOrNull() ?: 0
+    val minutos = partes[1].toIntOrNull() ?: 0
+
+    return when {
+        horas > 0 && minutos > 0 -> "${horas}h:${minutos}min"
+        horas > 0 -> "${horas}h"
+        minutos > 0 -> "${minutos}min"
+        else -> "0min"
+    }
+}
 
 @Composable
 fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude, mapView: MapView?, unidadeGeoMap: Map<String, GeoPoint>) {
@@ -487,7 +501,7 @@ fun CartaoUnidade(navController: NavHostController, unidade: UnidadeDeSaude, map
                             fontSize = 14.sp
                         )
                         Text(
-                            text = unidade.tempo_espera_geral ?: "N/A",
+                            text = unidade.tempo_espera_geral?.let { formatarTempo(it) } ?: "N/A",
                             color = Color(0xFF123B6D),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,

@@ -122,7 +122,7 @@ import kotlin.math.pow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: PaddingValues = PaddingValues(top = 50.dp, start = 20.dp, end = 20.dp),
-                              ) {
+) {
 
 
     // 🧩 PERMISSÃO → controla se o usuário já deu acesso à localização
@@ -519,47 +519,57 @@ fun BarraDePesquisaComFiltros(navController: NavHostController, paddingValues: P
                     )
 
                     var sliderPosition by remember { mutableStateOf(0f) }
-                    val stepSize = 5f
-                    val range = 0f..25f
-                    val steps = ((range.endInclusive - range.start) / stepSize).toInt() - 1
 
-                    val min = range.start
-                    val max = range.endInclusive
-
-                    val stepValues = List(steps + 1) { i ->
-                        min + (i * (max - min) / steps)
+                    FiltroDistanciaComFoto(
+                        icone = R.drawable.distancia,
+                        titulo = "Distância",
+                        valorAtual = sliderPosition
+                    ) { novoValor ->
+                        sliderPosition = novoValor
                     }
 
-                    var stepRange = 0
 
-                    Column {
-                        Slider(
-                            modifier = Modifier.padding(horizontal = 20.dp),
-                            value = sliderPosition,
-                            onValueChange = { sliderPosition = it },
-                            valueRange = range,
-                            steps = steps // (100/5) - 1, define os pontos onde o slider "para"
-                        )
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp), // Pequeno ajuste para alinhar melhor
-                            horizontalArrangement = Arrangement.SpaceBetween // Distribui os textos igualmente
-                        ) {
-                            // Cria um Text para cada passo definido
-                            stepValues.forEach { step ->
-                                Text(
-                                    text = "${stepRange} km",
-                                    fontSize = 12.sp,
-                                    color = Color.Gray,
-                                    textAlign = TextAlign.Center
-                                )
-
-                                stepRange = stepRange + 5
-                            }
-                        }
-                    }
+//                    val stepSize = 5f
+//                    val range = 0f..25f
+//                    val steps = ((range.endInclusive - range.start) / stepSize).toInt() - 1
+//
+//                    val min = range.start
+//                    val max = range.endInclusive
+//
+//                    val stepValues = List(steps + 1) { i ->
+//                        min + (i * (max - min) / steps)
+//                    }
+//
+//                    var stepRange = 0
+//
+//                    Column {
+//                        Slider(
+//                            modifier = Modifier.padding(horizontal = 20.dp),
+//                            value = sliderPosition,
+//                            onValueChange = { sliderPosition = it },
+//                            valueRange = range,
+//                            steps = steps // (100/5) - 1, define os pontos onde o slider "para"
+//                        )
+//
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(horizontal = 8.dp), // Pequeno ajuste para alinhar melhor
+//                            horizontalArrangement = Arrangement.SpaceBetween // Distribui os textos igualmente
+//                        ) {
+//                            // Cria um Text para cada passo definido
+//                            stepValues.forEach { step ->
+//                                Text(
+//                                    text = "${stepRange} km",
+//                                    fontSize = 12.sp,
+//                                    color = Color.Gray,
+//                                    textAlign = TextAlign.Center
+//                                )
+//
+//                                stepRange = stepRange + 5
+//                            }
+//                        }
+//                    }
 
 
 
@@ -751,16 +761,19 @@ fun FiltroSingleSelectComFoto(
 }
 
 
-// funcao para puxar os icons que nao vem da api em disponibilidade, os icons aqui foi colocado manualmente
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FiltroSingleSelect(
-    titulo: String,
-    lista: List<String>,
-    selecionado: String?,
-    onSelect: (String?) -> Unit,
-    icone: Int
+fun FiltroDistanciaComFoto(
+    icone: Int,
+    titulo: String = "Distância",
+    valorAtual: Float,
+    onValorSelecionado: (Float) -> Unit
 ) {
     var mostrar by remember { mutableStateOf(false) }
+
+    val stepSize = 5f
+    val range = 0f..25f
+    val steps = ((range.endInclusive - range.start) / stepSize).toInt() - 1
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
@@ -772,7 +785,7 @@ fun FiltroSingleSelect(
                 .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 4.dp)
         ) {
             Image(
-                painter = painterResource(id = icone),
+                painter = painterResource(icone),
                 contentDescription = titulo,
                 modifier = Modifier
                     .size(25.dp)
@@ -781,7 +794,12 @@ fun FiltroSingleSelect(
             )
 
             Spacer(modifier = Modifier.width(8.dp))
-            Text(titulo, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.Black
+            )
+
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = { mostrar = !mostrar }) {
                 Icon(
@@ -792,39 +810,42 @@ fun FiltroSingleSelect(
         }
 
         if (mostrar) {
-            lista.forEach { item ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 10.dp)
+            ) {
+
+                Slider(
+                    value = valorAtual,
+                    onValueChange = { onValorSelecionado(it) },
+                    valueRange = range,
+                    steps = steps,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onSelect(if (selecionado == item) null else item) }
-                        .padding(horizontal = 24.dp, vertical = 10.dp)
-                ) {
-                    // 🖼️ Define imagem com base no item
-                    val imagem = when (item) {
-                        "Sim" -> R.drawable.sim
-                        "Não" -> R.drawable.nao
-                        else -> null
-                    }
-
-                    imagem?.let {
-                        Image(
-                            painter = painterResource(id = imagem),
-                            contentDescription = item,
-                            modifier = Modifier
-                                .size(15.dp)
-                                .clip(RoundedCornerShape(6.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-
-                    Text(
-                        text = item,
-                        color = if (selecionado == item) Color(0xFF7FBEF8) else Color.Black,
-                        fontWeight = if (selecionado == item) FontWeight.Bold else FontWeight.Normal
+                        .height(50.dp)
+                        .graphicsLayer { scaleY = 0.7f },
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color(0xFF1E5FA3),
+                        activeTrackColor = Color(0xFF0B2A46),
+                        inactiveTrackColor = Color(0xFF7FBEF8)
                     )
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    for (valor in range.start.toInt()..range.endInclusive.toInt() step stepSize.toInt()) {
+                        Text(
+                            text = "${valor}km",
+                            fontSize = 15.sp,
+                            color = Color.Black
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(6.dp))
             }
         }
     }
